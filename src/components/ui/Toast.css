@@ -1,0 +1,40 @@
+.toasts {
+  position: fixed;
+  left: 50%;
+  /* Sits above the ledger's bulk bar, which shares the bottom edge. */
+  bottom: 96px;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 8px;
+  z-index: 50;
+  width: min(440px, calc(100vw - 32px));
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: var(--text-sm);
+  box-shadow: var(--shadow-soft);
+}
+
+.toast--error {
+  background: var(--clay-ink);
+  color: #fff;
+}
+
+.toast__action {
+  border: 0;
+  background: none;
+  padding: 2px 4px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  color: inherit;
+}

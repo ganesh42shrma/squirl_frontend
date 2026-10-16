@@ -1,0 +1,115 @@
+/*
+ * Design tokens. Warm paper, slate ink, and one accent per money type:
+ * clay = spent, olive = earned, sky = invested, kraft = moved (transfers), heather = lent & borrowed.
+ * `--x` is the fill colour; `--x-ink` is a darker shade that passes contrast as text on paper.
+ */
+:root {
+  --paper: #faf9f5;
+  --stone: #f0eee6;
+  --stone-strong: #e6e2d6;
+  --line: #e1ddd1;
+  --ink: #1f1e1d;
+  --ink-soft: #5e5b55;
+  --ink-faint: #8a867e;
+
+  --clay: #cc785c;
+  --clay-ink: #a5543a;
+  --olive: #788c5d;
+  --olive-ink: #56693d;
+  --sky: #6a9bcc;
+  --sky-ink: #3c6c9b;
+  --kraft: #d4a27f;
+  --kraft-ink: #8e6240;
+  --heather: #a9a6c9;
+  --heather-ink: #625e94;
+
+  --focus: #3c6c9b;
+
+  /* Chart colours: stronger steps of the same hues, validated for colour-blind separation
+     (dataviz validate_palette, all pairs). Use only for data marks, never for text. */
+  --viz-expense: #dc6a4a;
+  --viz-income: #1f6e40;
+  --viz-investment: #2a5fb0;
+  --viz-transfer: #d9ae2c;
+  --viz-lending: #a68be0;
+  --shadow-soft: 0 1px 0 rgba(31, 30, 29, 0.04), 0 8px 24px -12px rgba(31, 30, 29, 0.18);
+
+  --font-serif: 'Source Serif 4', 'Iowan Old Style', Georgia, serif;
+  --font-sans: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Type scale: a 1.25 ratio from a 16px base */
+  --text-xs: 0.8rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.563rem;
+  --text-2xl: 1.953rem;
+  --text-3xl: 2.441rem;
+  --text-display: clamp(2.6rem, 6vw, 4.4rem);
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 18px;
+  --gutter: clamp(16px, 4vw, 48px);
+  --measure: 68ch;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #262624;
+    --stone: #30302d;
+    --stone-strong: #3a3a36;
+    --line: #42413d;
+    --ink: #f3f1ea;
+    --ink-soft: #c2bfb6;
+    --ink-faint: #8f8c84;
+    --clay: #d98a6e;
+    --clay-ink: #e8a083;
+    --olive: #93a876;
+    --olive-ink: #aec08f;
+    --sky: #82afdb;
+    --sky-ink: #9cc2e8;
+    --kraft: #ddb08f;
+    --kraft-ink: #e6bf9f;
+    --heather: #b7b4d6;
+    --heather-ink: #c6c3e6;
+    --focus: #9cc2e8;
+    --viz-expense: #c3432d;
+    --viz-income: #06ac68;
+    --viz-investment: #2a5dc1;
+    --viz-transfer: #ba8507;
+    --viz-lending: #a07ed7;
+    --shadow-soft: 0 1px 0 rgba(0, 0, 0, 0.2), 0 10px 28px -14px rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --paper: #262624;
+  --stone: #30302d;
+  --stone-strong: #3a3a36;
+  --line: #42413d;
+  --ink: #f3f1ea;
+  --ink-soft: #c2bfb6;
+  --ink-faint: #8f8c84;
+  --clay: #d98a6e;
+  --clay-ink: #e8a083;
+  --olive: #93a876;
+  --olive-ink: #aec08f;
+  --sky: #82afdb;
+  --sky-ink: #9cc2e8;
+  --kraft: #ddb08f;
+  --kraft-ink: #e6bf9f;
+  --heather: #b7b4d6;
+  --heather-ink: #c6c3e6;
+  --focus: #9cc2e8;
+  --viz-expense: #c3432d;
+  --viz-income: #06ac68;
+  --viz-investment: #2a5dc1;
+  --viz-transfer: #ba8507;
+  --viz-lending: #a07ed7;
+  --shadow-soft: 0 1px 0 rgba(0, 0, 0, 0.2), 0 10px 28px -14px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}

@@ -1,0 +1,119 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.logo__word {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--stone);
+  color: var(--ink);
+}
+
+/* ── App shell ─────────────────────────────────────── */
+.shell {
+  min-height: 100vh;
+}
+
+.shell__header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 14px var(--gutter);
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.shell__nav {
+  display: flex;
+  gap: 4px;
+  margin-right: auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.shell__link {
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.shell__link:hover {
+  color: var(--ink);
+  background: var(--stone);
+}
+
+.shell__link.active {
+  color: var(--ink);
+  background: var(--stone-strong);
+}
+
+.shell__main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(24px, 4vw, 48px) var(--gutter) 96px;
+}
+
+/* Shared page heading used by every app page. */
+.page-head {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.page-head h1 {
+  font-size: var(--text-3xl);
+}
+
+.page-head p {
+  color: var(--ink-soft);
+  max-width: var(--measure);
+}
+
+@media (max-width: 640px) {
+  .shell__header {
+    flex-wrap: wrap;
+    gap: 10px 16px;
+  }
+
+  .shell__nav {
+    order: 3;
+    width: 100%;
+    margin: 0 -6px;
+  }
+
+  .logo {
+    margin-right: auto;
+  }
+}
