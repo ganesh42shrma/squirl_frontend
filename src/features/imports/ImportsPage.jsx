@@ -6,11 +6,13 @@ import { useToast } from '../../components/ui/Toast';
 import { StatementSketch } from '../../components/illustrations/Sketches';
 import { describeError } from '../../api/client';
 import { formatDay } from '../../lib/format';
+import { importSummary, coverageHint, statementPeriod } from './importSummary';
 import { useCreateImport, useDeleteImport, useImports } from './useImports';
 import '../../components/layout/layout.css';
 import './imports.css';
 
 const BANKS = [
+  { value: 'auto', label: 'Detect' },
   { value: 'sbi', label: 'SBI' },
   { value: 'kotak', label: 'Kotak' },
 ];
@@ -20,8 +22,27 @@ function importErrorMessage(error) {
   if (error.code === 'PARSER_UNAVAILABLE') {
     return 'The statement reader isn’t running. Start the parser service on port 8000, then try again.';
   }
+  if (error.code === 'PARSER_ERROR') {
+    return 'The statement reader hit an unexpected error. Nothing was imported. Try again, or check the parser logs.';
+  }
   if (error.code === 'STATEMENT_PARSE_FAILED') {
-    return `${error.message}. Check the password, or that the PDF is an SBI or Kotak statement.`;
+    switch (error.details?.parserCode) {
+      case 'PASSWORD_REQUIRED':
+        return 'This PDF is password protected. Enter its password and try again.';
+      case 'WRONG_PASSWORD':
+        return 'That password didn’t open the PDF. Check it and try again.';
+      case 'BANK_MISMATCH':
+        return `${error.message}. Pick the matching bank, or Detect, and try again.`;
+      case 'BANK_UNKNOWN':
+        return 'Couldn’t tell which bank this statement is from. Pick SBI or Kotak and try again.';
+      case 'NO_TEXT_LAYER':
+        return `${error.message}.`;
+      case 'UNSUPPORTED_LAYOUT':
+      case 'RECONCILIATION_FAILED':
+        return `${error.message}. Nothing was imported, so your ledger is unchanged.`;
+      default:
+        return `${error.message}. Check the password, or that the PDF is an SBI or Kotak statement.`;
+    }
   }
   return describeError(error);
 }
@@ -30,14 +51,14 @@ function plural(n, word) {
   return `${n} ${word}${n === 1 ? '' : 's'}`;
 }
 
-function period(batch) {
-  if (!batch.periodFrom) return null;
-  return `${formatDay(batch.periodFrom)} to ${formatDay(batch.periodTo)}`;
-}
+const period = statementPeriod;
+
+const BANK_NAMES = { sbi: 'SBI', kotak: 'Kotak' };
+const bankName = (bank) => BANK_NAMES[bank] || 'bank';
 
 function ImportForm() {
   const [file, setFile] = useState(null);
-  const [bank, setBank] = useState('sbi');
+  const [bank, setBank] = useState('auto');
   const [password, setPassword] = useState('');
   const [dragging, setDragging] = useState(false);
   const [result, setResult] = useState(null);
@@ -157,16 +178,15 @@ function ImportForm() {
             exit={{ opacity: 0 }}
           >
             <p className="import-result__title">
-              Added {plural(result.stats.inserted, 'row')} from {result.bank.toUpperCase()}.
+              {bankName(result.bank)} statement, {period(result)}
             </p>
             <p>
-              {result.stats.duplicates > 0 && `${plural(result.stats.duplicates, 'row')} were already in your ledger. `}
-              {result.stats.skipped > 0 && `${plural(result.stats.skipped, 'row')} couldn’t be read. `}
-              New rows arrive without a category.
+              {importSummary(result)}
             </p>
+            {coverageHint(result) && <p className="import-result__coverage">{coverageHint(result)}</p>}
             {result.stats.inserted > 0 && (
-              <Link to={`/app?importId=${result._id}`} className="btn btn--accent btn--small">
-                Sort the new rows
+              <Link to={`/app/ledger?importId=${result._id}`} className="btn btn--accent btn--small">
+                View new transactions
               </Link>
             )}
           </motion.div>
@@ -202,7 +222,7 @@ function ImportHistoryItem({ batch }) {
           <span className={`import-status import-status--${batch.status}`}>
             {batch.status === 'completed' ? 'Imported' : batch.status === 'failed' ? 'Failed' : 'Reading'}
           </span>
-          {batch.bank.toUpperCase()} statement
+          {batch.bank ? bankName(batch.bank) : 'Bank'} statement
         </p>
         <p className="import-item__meta">
           {batch.status === 'failed'
@@ -211,6 +231,7 @@ function ImportHistoryItem({ batch }) {
                 batch.fileName,
                 period(batch),
                 `${plural(batch.stats.inserted, 'new row')}`,
+                batch.newFrom ? `new from ${formatDay(batch.newFrom)}${batch.newTo !== batch.newFrom ? ` to ${formatDay(batch.newTo)}` : ''}` : null,
                 batch.stats.duplicates ? `${batch.stats.duplicates} already logged` : null,
               ]
                 .filter(Boolean)
@@ -219,7 +240,7 @@ function ImportHistoryItem({ batch }) {
       </div>
       <div className="import-item__actions">
         {batch.status === 'completed' && batch.stats.inserted > 0 && (
-          <Link to={`/app?importId=${batch._id}`} className="btn btn--quiet btn--small">
+          <Link to={`/app/ledger?importId=${batch._id}`} className="btn btn--quiet btn--small">
             Review rows
           </Link>
         )}
@@ -239,8 +260,8 @@ export function ImportsPage() {
       <header className="page-head">
         <h1>Bring in a statement</h1>
         <p>
-          Upload a PDF statement and its rows land in your ledger. Anything you’ve already logged is skipped, so it’s
-          safe to import overlapping months.
+          Upload a PDF statement and its rows land in your ledger. Squirl works out the bank and skips every row it
+          already has, so a three-month statement today and another tomorrow only add what’s new.
         </p>
       </header>
 

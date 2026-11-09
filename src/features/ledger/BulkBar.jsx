@@ -80,6 +80,7 @@ export function BulkBar({ ids, onClear }) {
             value=""
             onChange={setCategory}
             placeholder="Set category"
+            title={`Category for ${rows} selected row${rows === 1 ? '' : 's'}`}
             aria-label="Set category for selected rows"
           />
           <form className="bulk-bar__tag" onSubmit={addTag}>

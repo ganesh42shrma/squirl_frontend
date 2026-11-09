@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useQueries } from '@tanstack/react-query';
 import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Question } from '@phosphor-icons/react';
@@ -10,19 +10,14 @@ import { EmptyJar } from '../../components/illustrations/Sketches';
 import { TagPill } from '../tags/TagPill';
 import { useSummary } from '../ledger/useTransactions';
 import { useMonthParam } from '../../lib/hooks';
-import { formatMoney, formatMonth, formatMonthName, formatMonthShort, monthRange, shiftMonth } from '../../lib/format';
+import { HistoryView } from './HistoryView';
+import { formatMoney, formatMonth, formatMonthName, formatMonthShort, monthRange, shiftMonth, shortMoney } from '../../lib/format';
 import { MONEY_TYPES, monthFigures } from '../../lib/moneyTypes';
 import '../../components/layout/layout.css';
 import './insights.css';
 
 const money = (n) => formatMoney(Math.round(n), { rounded: true });
 
-// Compact axis ticks: ₹12k, ₹1.2L (lakh), the way amounts are said out loud in India.
-const shortMoney = (n) => {
-  if (n >= 100000) return `₹${(n / 100000).toFixed(n % 100000 ? 1 : 0)}L`;
-  if (n >= 1000) return `₹${Math.round(n / 1000)}k`;
-  return `₹${n}`;
-};
 
 /* ── Where it went: expenses by top-level category ───────────────────── */
 function WhereItWent({ month, range }) {
@@ -59,7 +54,7 @@ function WhereItWent({ month, range }) {
       <ol className="spend-bars">
         {rows.map((row) => {
           const share = Math.round((row.value / total) * 100);
-          const to = `/app?month=${month}&category=${row.key === null ? 'none' : row.key}`;
+          const to = `/app/ledger?month=${month}&category=${row.key === null ? 'none' : row.key}`;
           return (
             <li key={row.key ?? 'none'}>
               <Link
@@ -258,12 +253,50 @@ function TopTags({ range }) {
   );
 }
 
+// Month: one month in detail. History: any longer period, summarised (and written up by a local model if one runs).
+function ViewSwitch({ view, onChange }) {
+  return (
+    <div className="chip-group insights__views" role="group" aria-label="View">
+      {[
+        { id: 'month', label: 'Month' },
+        { id: 'history', label: 'History' },
+      ].map((v) => (
+        <button key={v.id} type="button" className={`chip${view === v.id ? ' is-active' : ''}`} aria-pressed={view === v.id} onClick={() => onChange(v.id)}>
+          {v.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function InsightsPage() {
   const [month, setMonth] = useMonthParam();
+  const [params, setParams] = useSearchParams();
+  const view = params.get('view') === 'history' ? 'history' : 'month';
+  const setView = (next) =>
+    setParams(
+      (prev) => {
+        const copy = new URLSearchParams(prev);
+        if (next === 'history') copy.set('view', 'history');
+        else copy.delete('view');
+        return copy;
+      },
+      { replace: true },
+    );
   const range = monthRange(month);
+
+  if (view === 'history') {
+    return (
+      <div className="insights">
+        <ViewSwitch view={view} onChange={setView} />
+        <HistoryView />
+      </div>
+    );
+  }
 
   return (
     <div className="insights">
+      <ViewSwitch view={view} onChange={setView} />
       <header className="ledger__head">
         <MonthSwitcher month={month} onChange={setMonth} />
       </header>

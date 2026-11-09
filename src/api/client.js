@@ -3,6 +3,7 @@
 //   failure → { success: false, error: { message, code, details?, requestId } }
 
 const BASE_URL = import.meta.env.VITE_API_URL || '';
+export const SIGNED_OUT_EVENT = 'squirl:signed-out';
 
 export class ApiError extends Error {
   constructor(message, { status, code, details, requestId } = {}) {
@@ -31,7 +32,12 @@ export async function api(path, { method = 'GET', query, body, signal } = {}) {
     response = await fetch(buildUrl(path, query), {
       method,
       signal,
-      headers: body && !isForm ? { 'Content-Type': 'application/json' } : undefined,
+      credentials: 'same-origin', // the httpOnly session cookie
+      headers: {
+        // Required by the backend on every write: a cross-site page can't add it (CSRF guard).
+        'X-Requested-With': 'squirl',
+        ...(body && !isForm && { 'Content-Type': 'application/json' }),
+      },
       body: body ? (isForm ? body : JSON.stringify(body)) : undefined,
     });
   } catch (err) {
@@ -45,6 +51,10 @@ export async function api(path, { method = 'GET', query, body, signal } = {}) {
 
   if (!response.ok || !json?.success) {
     const error = json?.error || {};
+    // The session ended (signed out elsewhere, password changed, expired): tell the app once.
+    if (response.status === 401 && error.code === 'AUTH_REQUIRED' && path !== '/auth/me') {
+      window.dispatchEvent(new Event(SIGNED_OUT_EVENT));
+    }
     throw new ApiError(error.message || `Request failed with status ${response.status}`, {
       status: response.status,
       code: error.code,

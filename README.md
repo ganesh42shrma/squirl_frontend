@@ -24,11 +24,15 @@ In development, Vite proxies `/api` to `http://localhost:4000`, so there is no C
 | Route | What it's for |
 |---|---|
 | `/` | Landing page |
-| `/app` | **Ledger**: the month as a spreadsheet. Add rows with the keyboard, click any cell to edit it, select rows to sort or tag them together |
-| `/app?view=unsorted` | Every row still waiting for a category, across all months |
-| `/app?importId=…` | Rows from one statement import |
-| `/app/insights` | Where the month's money went, the month's figures, the last six months, spending by tag |
-| `/app/imports` | Upload an SBI or Kotak PDF, see past imports, undo one |
+| `/login`, `/signup` | Sign in / create an account (signed-in visitors go straight to the app) |
+| `/forgot-password`, `/reset-password?token=…` | Ask for a reset link; choose a new password from it |
+| `/app/profile` | Name and email, change password (signs out other devices), delete the account |
+| `/app` | **Dashboard** (home): balance across accounts, each account with its trend, balance over time (3M–All), the latest month against the one before, where it went, latest rows, and anything that needs attention (gaps between statements, stale accounts, unsorted rows) |
+| `/app/ledger` | **Ledger**: the month as a spreadsheet. Add rows with the keyboard, click any cell to edit it, select rows to sort or tag them together |
+| `/app/ledger?view=unsorted` | Every row still waiting for a category, across all months |
+| `/app/ledger?importId=…` | Rows from one statement import |
+| `/app/highlights` | **Month**: where the month's money went, its figures, the last six months, spending by tag. **History** (`?view=history`): any longer period (last 12 months, all time, a year): highlights, money in and out per month, balance over time, top categories, largest rows, and an optional summary written by a local model |
+| `/app/imports` | Upload an SBI or Kotak PDF (the bank is detected), see what each import added, undo one |
 | `/app/sort-out` | Unsorted rows, plus managing categories and tags |
 
 Ledger shortcuts:
@@ -47,17 +51,25 @@ src/
 ├── components/
 │   ├── ui/                    # Button, Toast, MonthSwitcher, shared field styles
 │   ├── fx/                    # BlurText, CountUp (motion-based, respect reduced motion)
+│   ├── charts/                # BalanceChart (step area + table view), Sparkline
 │   ├── illustrations/         # the hand-drawn squirrel and spot drawings
 │   └── layout/                # app shell, logo, theme toggle
 └── features/                  # one folder per feature, like the backend's plugins
     ├── ledger/                # useTransactions, LedgerPage, AddRow, LedgerRow, BulkBar
     ├── categories/            # useCategories, CategorySelect
     ├── tags/                  # useTags, TagInput, TagPill
-    ├── insights/
+    ├── dashboard/             # DashboardPage (the home page)
+    ├── insights/              # Highlights: month view, HistoryView, useInsights
     ├── imports/
     ├── sortout/
     └── landing/
 ```
+
+Everything under `/app` is behind `RequireAuth`: a signed-out visitor is sent to `/login?next=…` and back after
+signing in. The session is an httpOnly cookie, so the frontend never sees a token; `api()` sends the
+`X-Requested-With: squirl` header the backend requires on writes. Whenever the signed-in account changes
+(sign in, sign out, reset, a 401 from any request) the whole query cache is dropped, so one account's data is
+never shown to the next.
 
 Data lives in React Query. Each feature's `use*.js` file holds its queries and mutations. Mutations invalidate whatever they affect: changing a transaction refreshes the lists, the totals and the tag counts.
 

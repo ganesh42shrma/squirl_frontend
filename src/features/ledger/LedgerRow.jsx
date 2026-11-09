@@ -1,5 +1,5 @@
 import { memo, useState } from 'react';
-import { Plus } from '@phosphor-icons/react';
+import { Plus, NotePencil, UsersThree, Sparkle } from '@phosphor-icons/react';
 import { CategoryIcon } from '../../components/ui/CategoryIcon';
 import { CategorySelect } from '../categories/CategorySelect';
 import { TagInput } from '../tags/TagInput';
@@ -8,6 +8,9 @@ import { useToast } from '../../components/ui/Toast';
 import { describeError } from '../../api/client';
 import { formatAccount, formatDay, formatMoney, toInputDate } from '../../lib/format';
 import { useUpdateTransaction } from './useTransactions';
+import { TransactionNoteDialog } from './TransactionNoteDialog';
+import { Dialog } from '../../components/ui/Dialog';
+import { Button } from '../../components/ui/Button';
 
 function categoryLabel(category) {
   if (!category) return null;
@@ -24,10 +27,12 @@ function parseAmount(raw, currentType) {
 }
 
 /**
- * One ledger row. Click a cell to edit it in place; Enter or leaving the cell saves, Escape cancels.
+ * Statement facts stay read-only; personal notes, categories and tags can be edited.
  */
-export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew }) {
+export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew, onAddMember }) {
   const [editing, setEditing] = useState(null);
+  const [noteOpen, setNoteOpen] = useState(false);
+  const imported = tx.source === 'import';
   const [draftTags, setDraftTags] = useState(tx.tags);
   const updateTransaction = useUpdateTransaction();
   const toast = useToast();
@@ -57,12 +62,13 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
   const label = categoryLabel(tx.category);
 
   const startEditing = (field) => {
+    if (imported && ['date', 'description', 'amount'].includes(field)) return;
     if (field === 'tags') setDraftTags(tx.tags);
     setEditing(field);
   };
 
   // A read-only cell that turns into an editor on click, Enter or Space.
-  const cellProps = (field) => ({
+  const cellProps = (field) => imported && ['date', 'description', 'amount'].includes(field) ? {} : ({
     role: 'button',
     tabIndex: 0,
     onClick: () => startEditing(field),
@@ -75,6 +81,7 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
   });
 
   return (
+    <>
     <div className={`ledger-row${selected ? ' is-selected' : ''}${isNew ? ' is-new' : ''}`} role="row">
       <div className="ledger-cell ledger-cell--check" role="cell">
         <input
@@ -97,7 +104,7 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
             aria-label="Date"
           />
         ) : (
-          <span className="editable" {...cellProps('date')} aria-label={`Date ${formatDay(tx.date)}, edit`}>
+          <span className={imported ? 'ledger-date' : 'editable'} {...cellProps('date')} aria-label={`Date ${formatDay(tx.date)}${imported ? '' : ', edit'}`}>
             {formatDay(tx.date)}
           </span>
         )}
@@ -114,13 +121,18 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
             aria-label="Description"
           />
         ) : (
-          <span className="editable ledger-description" {...cellProps('description')}>
+          <span className={`${imported ? 'ledger-statement' : 'editable'} ledger-description`} {...cellProps('description')} title={tx.description}>
             <span className="ledger-description__text">{tx.description}</span>
             <span className="ledger-description__meta">
               {tx.source === 'import' ? `${formatAccount(tx.account)} statement` : formatAccount(tx.account)}
+              {tx.notes && <span className="ledger-note-preview"> · {tx.notes}</span>}
             </span>
           </span>
         )}
+        <div className="ledger-row-actions">
+          <button type="button" className={`ledger-action${tx.notes ? ' has-note' : ''}`} onClick={() => setNoteOpen(true)} aria-label={`${tx.notes ? 'Edit' : 'Add'} note for ${tx.description}`} title={tx.notes ? `Edit note: ${tx.notes}` : 'Add note'}><NotePencil size={16} aria-hidden="true" /></button>
+          {onAddMember && <button type="button" className="ledger-action ledger-add-member" onClick={() => onAddMember(tx)} aria-label={`Add to family & friends from ${tx.description}`} title="Add to family & friends"><UsersThree size={16} aria-hidden="true" /></button>}
+        </div>
       </div>
 
       <div className="ledger-cell ledger-cell--category" role="cell">
@@ -128,19 +140,23 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
           <CategorySelect
             className="cell-input"
             value={tx.category?._id}
-            autoFocus
+            defaultOpen
             placeholder="No category"
+            title={`Category for “${tx.description}”`}
             onChange={(id) => save({ category: id })}
-            onBlur={() => setEditing(null)}
-            onKeyDown={(e) => e.key === 'Escape' && setEditing(null)}
+            onClose={() => setEditing(null)}
             aria-label="Category"
           />
         ) : (
           <span className="editable" {...cellProps('category')}>
             {label ? (
-              <span className="category-chip" title={label}>
+              <span
+                className={`category-chip${tx.autoCategorized ? ' category-chip--auto' : ''}`}
+                title={tx.autoCategorized ? `${label}. Sorted automatically; pick a category to confirm or change it` : label}
+              >
                 <CategoryIcon id={tx.category._id} />
                 <span className="category-chip__label">{label}</span>
+                {tx.autoCategorized && <span className="category-chip__auto"><Sparkle size={12} weight="fill" aria-hidden="true" />Auto-sorted</span>}
               </span>
             ) : (
               <span className="category-chip category-chip--empty">
@@ -153,32 +169,9 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
       </div>
 
       <div className="ledger-cell ledger-cell--tags" role="cell">
-        {editing === 'tags' ? (
-          <div
-            onBlur={(e) => {
-              if (!e.currentTarget.contains(e.relatedTarget)) save({ tags: draftTags });
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') {
-                setDraftTags(tx.tags);
-                setEditing(null);
-              }
-            }}
-          >
-            <TagInput value={draftTags} onChange={setDraftTags} autoFocus />
-          </div>
-        ) : (
-          <span className="editable ledger-tags" {...cellProps('tags')}>
-            {tx.tags.length ? (
-              tx.tags.map((t) => <TagPill key={t} name={t} />)
-            ) : (
-              <span className="ledger-tags__add">
-                <Plus size={11} weight="bold" aria-hidden="true" />
-                tag
-              </span>
-            )}
-          </span>
-        )}
+        <span className="editable ledger-tags" {...cellProps('tags')} title={tx.tags.join(', ')}>
+          {tx.tags.length ? tx.tags.map((tag) => <TagPill key={tag} name={tag} />) : <span className="ledger-tags__add"><Plus size={11} weight="bold" aria-hidden="true" />tag</span>}
+        </span>
       </div>
 
       <div className="ledger-cell ledger-cell--amount" role="cell">
@@ -194,7 +187,7 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
           />
         ) : (
           <span
-            className={`editable num ledger-amount ${tx.type === 'credit' ? 'amount-credit' : 'amount-debit'}`}
+            className={`${imported ? '' : 'editable '}num ledger-amount ${tx.type === 'credit' ? 'amount-credit' : 'amount-debit'}`}
             {...cellProps('amount')}
           >
             {`${tx.type === 'credit' ? '+' : '−'}${formatMoney(tx.amount)}`}
@@ -202,5 +195,10 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
         )}
       </div>
     </div>
+    {editing === 'tags' && <Dialog title="Transaction tags" onClose={() => setEditing(null)} footer={<><Button variant="quiet" onClick={() => setEditing(null)}>Cancel</Button><Button onClick={() => save({ tags: draftTags })} disabled={updateTransaction.isPending}>Save tags</Button></>}>
+      <TagInput value={draftTags} onChange={setDraftTags} autoFocus />
+    </Dialog>}
+    {noteOpen && <TransactionNoteDialog transaction={tx} onClose={() => setNoteOpen(false)} />}
+    </>
   );
 });

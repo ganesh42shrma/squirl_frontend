@@ -1,0 +1,54 @@
+.magic-bento {
+  --mb-radius: 22px;
+  position: relative;
+  isolation: isolate;
+}
+
+.magic-bento .magic-bento__card {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--mb-radius);
+  background: linear-gradient(155deg, var(--paper), color-mix(in srgb, var(--stone) 48%, var(--paper)));
+  box-shadow: 0 2px 3px -2px color-mix(in srgb, var(--ink) 8%, transparent), 0 16px 40px -32px color-mix(in srgb, var(--ink) 24%, transparent);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.magic-bento__card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(320px circle at var(--mb-x, -1000px) var(--mb-y, -1000px), var(--clay), transparent 75%);
+  mask: linear-gradient(#fff 0 0) content-box exclude, linear-gradient(#fff 0 0);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms;
+}
+
+.magic-bento[data-hover] .magic-bento__card::before { opacity: 0.65; }
+.magic-bento__card:focus-within { border-color: var(--focus); }
+.magic-bento__effects { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; pointer-events: none; z-index: -1; }
+.magic-bento__light, .magic-bento__wave { position: absolute; pointer-events: none; }
+.magic-bento__light {
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  background: radial-gradient(380px circle at var(--mb-x, -1000px) var(--mb-y, -1000px), color-mix(in srgb, var(--clay) 8%, transparent), transparent 75%);
+  transition: opacity 200ms;
+}
+.magic-bento[data-hover] .magic-bento__light { opacity: 1; }
+.magic-bento__wave {
+  width: 200%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, transparent 45%, color-mix(in srgb, var(--clay) 25%, transparent) 50%, transparent 55%);
+  opacity: 0;
+  clip-path: inset(0);
+}
+.magic-bento__content { position: relative; min-width: 0; }
+
+@media (prefers-reduced-motion: reduce), (hover: none) {
+  .magic-bento__card::before, .magic-bento__light, .magic-bento__wave { display: none; }
+  .magic-bento .magic-bento__card { transition: none; }
+}

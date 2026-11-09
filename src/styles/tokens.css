@@ -32,6 +32,8 @@
   --viz-investment: #2a5fb0;
   --viz-transfer: #d9ae2c;
   --viz-lending: #a68be0;
+  /* Balance over time: a single series, never shown beside "invested", so it reuses that validated blue. */
+  --viz-balance: #2a5fb0;
   --shadow-soft: 0 1px 0 rgba(31, 30, 29, 0.04), 0 8px 24px -12px rgba(31, 30, 29, 0.18);
 
   --font-serif: 'Source Serif 4', 'Iowan Old Style', Georgia, serif;
@@ -81,6 +83,7 @@
     --viz-investment: #2a5dc1;
     --viz-transfer: #ba8507;
     --viz-lending: #a07ed7;
+    --viz-balance: #2a5dc1;
     --shadow-soft: 0 1px 0 rgba(0, 0, 0, 0.2), 0 10px 28px -14px rgba(0, 0, 0, 0.6);
     color-scheme: dark;
   }
@@ -110,6 +113,7 @@
   --viz-investment: #2a5dc1;
   --viz-transfer: #ba8507;
   --viz-lending: #a07ed7;
+  --viz-balance: #2a5dc1;
   --shadow-soft: 0 1px 0 rgba(0, 0, 0, 0.2), 0 10px 28px -14px rgba(0, 0, 0, 0.6);
   color-scheme: dark;
 }

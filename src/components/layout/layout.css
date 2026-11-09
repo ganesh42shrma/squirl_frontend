@@ -117,3 +117,46 @@
     margin-right: auto;
   }
 }
+
+/* ── Background job pill (bottom-left, every screen) ─ */
+.bg-notice {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 40px);
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  box-shadow: var(--shadow-soft);
+  font-size: var(--text-sm);
+}
+
+.bg-notice__icon {
+  color: var(--clay-ink);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.bg-notice__bar {
+  width: 80px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--stone-strong);
+  overflow: hidden;
+}
+
+.bg-notice__bar span {
+  display: block;
+  height: 100%;
+  background: var(--clay);
+  transition: width 0.6s ease;
+}
+
+.bg-notice a {
+  color: var(--ink-soft);
+  font-weight: 600;
+}

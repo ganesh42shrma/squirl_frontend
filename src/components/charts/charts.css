@@ -1,0 +1,51 @@
+/* Shared chart pieces. The tooltip and table styles live in insights.css and are reused here. */
+.balance-chart {
+  display: grid;
+  gap: 8px;
+}
+
+.chart-head.chart-head--end {
+  justify-content: flex-end;
+}
+
+.data-table-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.sparkline {
+  overflow: visible;
+}
+
+/* Range filter: one row above the chart it scopes. */
+.chip-group {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--stone);
+}
+
+.chip {
+  min-width: 40px;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.chip:hover {
+  color: var(--ink);
+}
+
+.chip.is-active {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+}

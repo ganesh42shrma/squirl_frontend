@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { importSummary, coverageHint, statementPeriod } from '../src/features/imports/importSummary.js';
+const batch = { periodFrom: '2026-08-01T00:00:00.000Z', periodTo: '2026-10-31T00:00:00.000Z', stats: { parsed: 229, inserted: 0, duplicates: 229, skipped: 0 } };
+assert.equal(importSummary(batch), '229 rows checked · 0 new · 229 already imported.');
+assert.equal(statementPeriod(batch), '1 Aug 2026 to 31 Oct 2026');
+assert.equal(coverageHint(batch, '2026-11-09'), 'For newer activity, upload a statement ending after 31 Oct 2026.');
+assert.equal(coverageHint(batch, '2026-10-31'), '');
+assert.equal(coverageHint({ ...batch, stats: { ...batch.stats, inserted: 2 } }, '2026-11-09'), '');
+assert.match(importSummary({ stats: { parsed: 230, inserted: 0, duplicates: 229, skipped: 1 } }), /1 skipped/);
+assert.match(coverageHint({ ...batch, stats: { ...batch.stats, skipped: 1 } }), /unusable/);
+assert.equal(coverageHint({ ...batch, periodTo: undefined }), '');
+console.log('Passed: exact statement coverage, parsed/duplicate/skipped counts and newer-statement guidance.');

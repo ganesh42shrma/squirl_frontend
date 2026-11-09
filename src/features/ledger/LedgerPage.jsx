@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowDown, ArrowUp } from '@phosphor-icons/react';
 import { MonthSwitcher } from '../../components/ui/MonthSwitcher';
@@ -12,6 +12,9 @@ import { MonthTotals } from './MonthTotals';
 import { AddRow } from './AddRow';
 import { LedgerRow } from './LedgerRow';
 import { BulkBar } from './BulkBar';
+import { LedgerPagination } from './LedgerPagination';
+import { initialPagination, paginationReducer, paginationInfo } from './ledgerPaging';
+import { AddMemberDialog } from '../profile/AddMemberDialog';
 import './ledger.css';
 
 const NEXT_SORT = { '-date': 'date', date: '-date', '-amount': 'amount', amount: '-amount' };
@@ -38,11 +41,14 @@ export function LedgerPage() {
   const importId = params.get('importId');
   // Focused views that ignore the month: one import's rows, or every row still waiting for a category.
   const unsortedView = params.get('view') === 'unsorted';
+  const autoView = params.get('view') === 'auto';
   const focusedView = importId
     ? { title: 'Rows from one import', scope: { importId } }
     : unsortedView
       ? { title: 'Rows waiting for a category', scope: { category: 'none' } }
-      : null;
+      : autoView
+        ? { title: 'Rows sorted automatically', scope: { auto: true } }
+        : null;
 
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState(params.get('category') || null);
@@ -50,25 +56,39 @@ export function LedgerPage() {
   const [sort, setSort] = useState('-date');
   const [selected, setSelected] = useState(() => new Set());
   const [newId, setNewId] = useState(null);
+  const [memberTransaction, setMemberTransaction] = useState(null);
   const debouncedSearch = useDebouncedValue(search);
   const { tags } = useTags();
 
   const range = monthRange(month);
+  const scope = JSON.stringify([month, importId, unsortedView, autoView, debouncedSearch, category, tag, sort]);
+  const [paging, dispatchPage] = useReducer(paginationReducer, initialPagination);
+  const page = paging.scope === scope ? paging.page : 1;
+  const limit = paging.limit;
+  const changePage = (next) => dispatchPage({ type: 'page', scope, page: next });
+  useEffect(() => dispatchPage({ type: 'scope', scope }), [scope]);
   const query = {
     search: debouncedSearch,
     category,
     tag,
     sort,
-    limit: 500,
+    page,
+    limit,
     ...(focusedView ? focusedView.scope : range),
   };
-  const { data, isLoading, isError, error, isFetching } = useTransactions(query);
-  const rows = useMemo(() => data?.data || [], [data]);
+  const { data, isLoading, isError, error, isFetching, isPlaceholderData } = useTransactions(query);
+  const rows = useMemo(() => isPlaceholderData || isError ? [] : data?.data || [], [data, isPlaceholderData, isError]);
   const total = data?.meta?.total || 0;
   const filtered = Boolean(debouncedSearch || category || tag);
+  const { pages } = paginationInfo(page, limit, total);
+  const changingPage = !isError && (isLoading || isPlaceholderData || page > pages);
+  // A deletion or background category change can remove the last page.
+  useEffect(() => {
+    if (!isFetching && !isError && data && !isPlaceholderData && page > pages) dispatchPage({ type: 'page', scope, page: pages });
+  }, [data, isFetching, isError, isPlaceholderData, page, pages, scope]);
 
-  // A different month or filter means a different set of rows; drop the selection.
-  useEffect(() => setSelected(new Set()), [month, importId, unsortedView, debouncedSearch, category, tag]);
+  // Selection belongs to the current page and query scope.
+  useEffect(() => setSelected(new Set()), [scope, page, limit]);
 
   useEffect(() => {
     if (!newId) return;
@@ -136,7 +156,9 @@ export function LedgerPage() {
           value={category}
           onChange={setCategory}
           placeholder="All categories"
+          clearLabel="All categories"
           allowNone
+          title="Show rows in a category"
           aria-label="Filter by category"
         />
         <select className="select ledger__filter" value={tag} onChange={(e) => setTag(e.target.value)} aria-label="Filter by tag">
@@ -154,73 +176,72 @@ export function LedgerPage() {
         )}
       </div>
 
-      <div className={`ledger-table${isFetching && !isLoading ? ' is-refreshing' : ''}`} role="table" aria-label="Transactions">
-        <div className="ledger-row ledger-row--head" role="row">
-          <div className="ledger-cell ledger-cell--check" role="columnheader">
-            <input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label="Select all rows" disabled={!rows.length} />
+      <div className="ledger-table-scroll">
+        <div className={`ledger-table${isFetching && !isLoading ? ' is-refreshing' : ''}`} role="table" aria-label="Transactions" aria-busy={isFetching}>
+          <div className="ledger-row ledger-row--head" role="row">
+            <div className="ledger-cell ledger-cell--check" role="columnheader">
+              <input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label="Select all rows on this page" disabled={!rows.length || isFetching} />
+            </div>
+            <div className="ledger-cell ledger-cell--date" role="columnheader">
+              <SortButton field="date" sort={sort} onSort={setSort}>Date</SortButton>
+            </div>
+            <div className="ledger-cell ledger-cell--description" role="columnheader">Description</div>
+            <div className="ledger-cell ledger-cell--category" role="columnheader">Category</div>
+            <div className="ledger-cell ledger-cell--tags" role="columnheader">Tags</div>
+            <div className="ledger-cell ledger-cell--amount" role="columnheader">
+              <SortButton field="amount" sort={sort} onSort={setSort}>Amount</SortButton>
+            </div>
           </div>
-          <div className="ledger-cell ledger-cell--date" role="columnheader">
-            <SortButton field="date" sort={sort} onSort={setSort}>Date</SortButton>
-          </div>
-          <div className="ledger-cell ledger-cell--description" role="columnheader">Description</div>
-          <div className="ledger-cell ledger-cell--category" role="columnheader">Category</div>
-          <div className="ledger-cell ledger-cell--tags" role="columnheader">Tags</div>
-          <div className="ledger-cell ledger-cell--amount" role="columnheader">
-            <SortButton field="amount" sort={sort} onSort={setSort}>Amount</SortButton>
-          </div>
+
+          {!focusedView && <AddRow onAdded={(created) => { changePage(1); setNewId(created._id); }} />}
+
+          {changingPage &&
+            Array.from({ length: 6 }, (_, i) => (
+              <div key={i} className="ledger-row ledger-row--skeleton" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
+            ))}
+
+          {isError && (
+            <div className="ledger-message" role="alert">
+              <p className="ledger-message__title">The ledger couldn’t load.</p>
+              <p>{error.message}</p>
+            </div>
+          )}
+
+          {!changingPage && !isError && rows.length === 0 && (
+            <div className="ledger-message">
+              <EmptyJar />
+              {filtered ? (
+                <>
+                  <p className="ledger-message__title">Nothing matches these filters.</p>
+                  <button type="button" className="link-button" onClick={clearFilters}>
+                    Clear filters
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="ledger-message__title">Nothing logged for {formatMonth(month)} yet.</p>
+                  <p>
+                    Add your first row above, or <Link to="/app/imports">bring in a bank statement</Link>.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+
+          {rows.map((tx) => (
+            <LedgerRow key={tx._id} tx={tx} selected={selected.has(tx._id)} onToggle={toggle} isNew={tx._id === newId} onAddMember={setMemberTransaction} />
+          ))}
         </div>
 
-        {!focusedView && <AddRow onAdded={(created) => setNewId(created._id)} />}
-
-        {isLoading &&
-          Array.from({ length: 6 }, (_, i) => (
-            <div key={i} className="ledger-row ledger-row--skeleton" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-            </div>
-          ))}
-
-        {isError && (
-          <div className="ledger-message" role="alert">
-            <p className="ledger-message__title">The ledger couldn’t load.</p>
-            <p>{error.message}</p>
-          </div>
-        )}
-
-        {!isLoading && !isError && rows.length === 0 && (
-          <div className="ledger-message">
-            <EmptyJar />
-            {filtered ? (
-              <>
-                <p className="ledger-message__title">Nothing matches these filters.</p>
-                <button type="button" className="link-button" onClick={clearFilters}>
-                  Clear filters
-                </button>
-              </>
-            ) : (
-              <>
-                <p className="ledger-message__title">Nothing logged for {formatMonth(month)} yet.</p>
-                <p>
-                  Add your first row above, or <Link to="/app/imports">bring in a bank statement</Link>.
-                </p>
-              </>
-            )}
-          </div>
-        )}
-
-        {rows.map((tx) => (
-          <LedgerRow key={tx._id} tx={tx} selected={selected.has(tx._id)} onToggle={toggle} isNew={tx._id === newId} />
-        ))}
       </div>
-
-      {total > rows.length && (
-        <p className="ledger__note">
-          Showing the first {rows.length} of {total} rows. Narrow it down with search or filters.
-        </p>
-      )}
+      <LedgerPagination page={page} limit={limit} total={total} loading={isFetching || changingPage} onPage={changePage} onLimit={(next) => dispatchPage({ type: 'limit', scope, limit: next })} />
 
       <BulkBar ids={[...selected]} onClear={() => setSelected(new Set())} />
+      {memberTransaction && <AddMemberDialog transaction={memberTransaction} onClose={() => setMemberTransaction(null)} />}
     </div>
   );
 }

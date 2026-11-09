@@ -9,6 +9,16 @@ export function useTransactions(params) {
   });
 }
 
+// One all-date count shared by Dashboard and Sort out, refreshed during background work.
+export function useUnsortedCount() {
+  return useQuery({
+    queryKey: ['transactions', { category: 'none', limit: 1 }],
+    queryFn: () => api('/transactions', { query: { category: 'none', limit: 1 } }),
+    select: (r) => r.meta?.total || 0,
+    refetchInterval: 20_000,
+  });
+}
+
 export function useSummary(params) {
   return useQuery({
     queryKey: ['summary', params],
@@ -26,6 +36,7 @@ function useTransactionMutation(mutationFn) {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['summary'] });
       queryClient.invalidateQueries({ queryKey: ['tags'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
     },
   });
 }

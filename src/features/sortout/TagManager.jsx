@@ -62,7 +62,6 @@ export function TagManager() {
       <div className="manager__head">
         <h2 id="tags-title">Tags</h2>
       </div>
-      <p className="manager__muted">Renaming a tag renames it on every row. Deleting one removes it everywhere.</p>
 
       {isLoading && <p className="manager__muted">Loading…</p>}
 

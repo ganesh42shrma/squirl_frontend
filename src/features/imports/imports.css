@@ -214,3 +214,5 @@
     grid-template-columns: 1fr;
   }
 }
+
+.import-result__coverage { font-size: var(--text-xs); color: var(--ink-soft); }

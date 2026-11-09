@@ -27,6 +27,28 @@ export function formatDay(value) {
   return new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 }
 
+// "15 Oct 2026"
+export function formatDate(value) {
+  return new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
+
+// Whole days from a YYYY-MM-DD (or ISO) date to today.
+export function daysSince(value) {
+  const then = Date.parse(String(value).slice(0, 10));
+  const today = Date.parse(todayISO());
+  return Math.round((today - then) / 86400000);
+}
+
+// Compact amounts for axis ticks: ₹12k, ₹1.2L (lakh), ₹1.5Cr, the way they're said out loud in India.
+export function shortMoney(n) {
+  const sign = n < 0 ? '-' : '';
+  const a = Math.abs(n);
+  if (a >= 10000000) return `${sign}₹${(a / 10000000).toFixed(a % 10000000 ? 1 : 0)}Cr`;
+  if (a >= 100000) return `${sign}₹${(a / 100000).toFixed(a % 100000 ? 1 : 0)}L`;
+  if (a >= 1000) return `${sign}₹${Math.round(a / 1000)}k`;
+  return `${sign}₹${Math.round(a)}`;
+}
+
 // "October 2026"
 export function formatMonth(monthKey) {
   const [year, month] = monthKey.split('-').map(Number);

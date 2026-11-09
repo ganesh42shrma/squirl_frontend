@@ -33,6 +33,231 @@
   font-size: var(--text-sm);
 }
 
+/* ── Model suggestions (inside the unsorted prompt) ── */
+.unsorted__suggest {
+  grid-column: 1 / -1;
+}
+
+.suggest,
+.suggest__off {
+  padding-top: 18px;
+  border-top: 1px solid color-mix(in srgb, var(--clay) 25%, transparent);
+}
+
+.suggest {
+  display: grid;
+  gap: 14px;
+}
+
+.suggest__off {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+.suggest__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.suggest h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-lg);
+}
+
+.suggest__hint {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+.suggest__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.suggest__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(180px, 260px) 56px 28px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--paper) 70%, transparent);
+  font-size: var(--text-sm);
+}
+
+.suggest__item input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--clay);
+}
+
+.suggest__desc {
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggest__meta {
+  color: var(--ink-faint);
+  font-size: var(--text-xs);
+}
+
+.suggest__confidence {
+  justify-self: end;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--ink-faint);
+}
+
+.suggest__confidence.is-high {
+  color: var(--olive-ink);
+}
+
+.suggest__confidence.is-medium {
+  color: var(--kraft-ink);
+}
+
+.suggest__progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 16px;
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+}
+
+.suggest__bar {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--clay) 18%, transparent);
+  overflow: hidden;
+}
+
+.suggest__bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--clay);
+  transition: width 0.6s ease;
+}
+
+.suggest__dismiss {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+
+.suggest__dismiss:hover {
+  background: var(--stone);
+  color: var(--ink);
+}
+
+.suggest__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.suggest__select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.suggest__select-all input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--clay);
+}
+
+@media (max-width: 720px) {
+  .suggest__item {
+    grid-template-columns: auto minmax(0, 1fr) 48px 28px;
+  }
+
+  .suggest__item .select {
+    grid-column: 2 / -1;
+  }
+
+  .suggest__head {
+    flex-direction: column;
+  }
+}
+
+/* ── Learned merchants ─────────────────────────────── */
+.learned {
+  margin-top: 56px;
+  max-width: 860px;
+}
+
+.learned__apply {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--olive) 14%, var(--paper));
+  font-size: var(--text-sm);
+}
+
+.learned__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.learned__list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--text-sm);
+}
+
+.learned__merchant {
+  display: grid;
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.learned__meta {
+  color: var(--ink-faint);
+  font-size: var(--text-xs);
+  font-weight: 400;
+}
+
+.learned__category {
+  color: var(--ink-soft);
+}
+
 /* ── Managers ──────────────────────────────────────── */
 .sortout__managers {
   display: grid;

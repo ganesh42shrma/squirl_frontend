@@ -1,0 +1,380 @@
+.commitments {
+  display: grid;
+  gap: 40px;
+}
+
+.cm-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 0;
+}
+
+.cm-muted,
+.cm-optional {
+  color: var(--ink-faint);
+  font-size: var(--text-sm);
+}
+
+.cm-optional {
+  font-size: var(--text-xs);
+}
+
+.cm-hint {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+.cm-totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border-block: 1px solid var(--line);
+}
+
+.cm-totals > div {
+  display: grid;
+  gap: 2px;
+  padding: 16px 16px 16px 0;
+}
+
+.cm-totals > div + div {
+  padding-left: 16px;
+  border-left: 1px solid var(--line);
+}
+
+.cm-totals dt {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+.cm-totals dd {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: 600;
+}
+
+.cm-section-block {
+  display: grid;
+  gap: 14px;
+}
+
+.cm-section-block h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-xl);
+}
+
+.cm-alerts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.cm-alerts li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--clay) 14%, var(--paper));
+  color: var(--clay-ink);
+  font-size: var(--text-sm);
+}
+
+.cm-upcoming {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cm-upcoming li {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--text-sm);
+}
+
+.cm-upcoming li.is-due_soon {
+  font-weight: 600;
+}
+
+.cm-upcoming__date {
+  color: var(--ink-soft);
+}
+
+/* ── Loan cards ─────────────────────────────────────── */
+.cm-cards,
+.cm-rows,
+.cm-detected {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.cm-card {
+  display: grid;
+  gap: 14px;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--stone) 35%, var(--paper));
+}
+
+.cm-card.is-missed {
+  border-color: color-mix(in srgb, var(--clay) 50%, var(--line));
+}
+
+.cm-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cm-card h3 {
+  font-size: var(--text-lg);
+}
+
+.cm-card__due {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  text-align: right;
+}
+
+.cm-amount {
+  font-size: var(--text-xl);
+  font-weight: 600;
+}
+
+.cm-due {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+.cm-due.is-due_soon {
+  color: var(--clay-ink);
+  font-weight: 600;
+}
+
+.cm-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--stone-strong);
+  overflow: hidden;
+}
+
+.cm-progress span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--viz-income);
+}
+
+.cm-figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 16px;
+  margin: 0;
+}
+
+.cm-figures dt {
+  color: var(--ink-faint);
+  font-size: var(--text-xs);
+}
+
+.cm-figures dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.cm-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.cm-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+.cm-state.is-paid {
+  color: var(--olive-ink);
+}
+
+.cm-state.is-missed {
+  color: var(--clay-ink);
+}
+
+.cm-actions {
+  display: flex;
+  gap: 14px;
+}
+
+.cm-danger {
+  color: var(--clay-ink);
+}
+
+/* ── Bills ──────────────────────────────────────────── */
+.cm-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.cm-row__main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cm-row__name {
+  font-weight: 600;
+}
+
+.cm-detected li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+}
+
+/* ── Form ───────────────────────────────────────────── */
+.cm-form {
+  display: grid;
+  gap: 20px;
+}
+
+.cm-kinds {
+  display: inline-flex;
+  gap: 2px;
+  margin: 0;
+  padding: 3px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--stone);
+  justify-self: start;
+}
+
+.cm-kind {
+  padding: 6px 14px;
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cm-kind input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cm-kind.is-active {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+}
+
+.cm-kind:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.cm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px 16px;
+}
+
+.cm-section {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.cm-section legend {
+  padding: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+}
+
+.cm-linked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--olive) 12%, var(--paper));
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.cm-merchants {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.cm-merchants button {
+  display: grid;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.cm-merchants button:hover {
+  background: var(--stone);
+}
+
+@media (max-width: 720px) {
+  .cm-head {
+    flex-direction: column;
+  }
+
+  .cm-totals,
+  .cm-figures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cm-totals > div:nth-child(3) {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
