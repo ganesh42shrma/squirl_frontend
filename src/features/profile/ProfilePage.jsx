@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
+import { Dialog } from '../../components/ui/Dialog';
 import { useToast } from '../../components/ui/Toast';
 import { describeError } from '../../api/client';
 import { formatDate } from '../../lib/format';
@@ -11,6 +12,9 @@ import '../auth/auth.css';
 import './profile.css';
 import { FamilyContacts } from './FamilyContacts';
 import { ResetFinancialData } from './ResetFinancialData';
+import { AiSettings } from './AiSettings';
+import { DataSources } from './DataSources';
+import '../commitments/commitments.css';
 
 function Details({ profile }) {
   const update = useUpdateProfile();
@@ -61,9 +65,22 @@ function Details({ profile }) {
 function ChangePassword() {
   const change = useChangePassword();
   const toast = useToast();
-  const [form, setForm] = useState({ current: '', next: '', confirm: '' });
+  const empty = { current: '', next: '', confirm: '' };
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(empty);
   const set = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
   const mismatch = form.confirm.length > 0 && form.confirm !== form.next;
+
+  const openDialog = () => {
+    change.reset();
+    setForm(empty);
+    setOpen(true);
+  };
+  const close = () => {
+    if (change.isPending) return;
+    setOpen(false);
+    setForm(empty);
+  };
 
   const submit = (e) => {
     e.preventDefault();
@@ -71,8 +88,9 @@ function ChangePassword() {
       { currentPassword: form.current, newPassword: form.next },
       {
         onSuccess: () => {
+          setOpen(false);
+          setForm(empty);
           toast('Password changed. Other devices have been signed out.');
-          setForm({ current: '', next: '', confirm: '' });
         },
       },
     );
@@ -84,17 +102,34 @@ function ChangePassword() {
         <h2 id="password-title">Password</h2>
         <p>Changing it signs out every other device. This one stays signed in.</p>
       </div>
-      <form className="profile-form" onSubmit={submit}>
-        <PasswordField label="Current password" value={form.current} onChange={set('current')} autoComplete="current-password" />
-        <PasswordField label="New password" value={form.next} onChange={set('next')} autoComplete="new-password" hint="At least 10 characters." />
-        <PasswordField label="Type it again" value={form.confirm} onChange={set('confirm')} autoComplete="new-password" hint={mismatch ? 'These don’t match yet.' : null} />
-        {change.isError && <p className="import-error">{describeError(change.error)}</p>}
-        <div className="profile-form__actions">
-          <Button type="submit" disabled={change.isPending || !form.current || form.next.length < 10 || form.next !== form.confirm}>
-            {change.isPending ? 'Changing…' : 'Change password'}
-          </Button>
-        </div>
-      </form>
+      <div>
+        <Button variant="quiet" onClick={openDialog}>Change password</Button>
+      </div>
+      {open && (
+        <Dialog
+          title="Change password"
+          onClose={close}
+          footer={
+            <>
+              <Button variant="quiet" disabled={change.isPending} onClick={close}>Cancel</Button>
+              <Button
+                type="submit"
+                form="change-password-form"
+                disabled={change.isPending || !form.current || form.next.length < 10 || form.next !== form.confirm}
+              >
+                {change.isPending ? 'Changing…' : 'Change password'}
+              </Button>
+            </>
+          }
+        >
+          <form id="change-password-form" className="profile-form" onSubmit={submit}>
+            <PasswordField label="Current password" value={form.current} onChange={set('current')} autoComplete="current-password" autoFocus />
+            <PasswordField label="New password" value={form.next} onChange={set('next')} autoComplete="new-password" hint="At least 10 characters." />
+            <PasswordField label="Type it again" value={form.confirm} onChange={set('confirm')} autoComplete="new-password" hint={mismatch ? 'These don’t match yet.' : null} />
+            {change.isError && <p className="import-error">{describeError(change.error)}</p>}
+          </form>
+        </Dialog>
+      )}
     </section>
   );
 }
@@ -203,6 +238,8 @@ export function ProfilePage() {
       </section>
       <FamilyContacts profile={profile} />
       <ChangePassword />
+      <AiSettings />
+      <DataSources />
       <ResetFinancialData />
       <DangerZone profile={profile} />
     </div>

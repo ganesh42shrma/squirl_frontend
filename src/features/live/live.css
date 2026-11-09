@@ -1,0 +1,737 @@
+/* Live: cards of public data. Same paper/stone language as the rest of the app. */
+.live {
+  display: grid;
+  gap: 28px;
+}
+
+.live-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.live-card {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--stone) 30%, var(--paper));
+}
+
+/* Wide cards take the full row when there are two columns. */
+@media (min-width: 900px) {
+  .live-card--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+.live-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.live-card h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+}
+
+.live-card h2 svg {
+  color: var(--clay);
+}
+
+.live-card__foot {
+  color: var(--ink-faint);
+  font-size: var(--text-xs);
+}
+
+.live-card__foot a {
+  color: inherit;
+}
+
+.live-stale {
+  color: var(--clay-ink);
+}
+
+.live-muted {
+  color: var(--ink-faint);
+  font-size: var(--text-sm);
+}
+
+.live-note {
+  font-size: var(--text-xs);
+}
+
+.live-big {
+  color: var(--ink);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.live-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  font-size: var(--text-sm);
+}
+
+.live-row .input {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.live-row > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.live-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.live-setup a {
+  white-space: nowrap;
+}
+
+.live-num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.live-change.is-up {
+  color: var(--olive-ink);
+}
+
+.live-change.is-down {
+  color: var(--clay-ink);
+}
+
+/* Lists of rows: name · extra · value · change · remove */
+.live-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.live-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--text-sm);
+}
+
+.live-list li:has(.live-spark) {
+  grid-template-columns: minmax(0, 1fr) auto auto auto auto;
+}
+
+.live-remove {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+
+.live-remove:hover {
+  background: var(--stone);
+  color: var(--ink);
+}
+
+.live-remove:focus-visible {
+  outline: 2px solid var(--focus);
+}
+
+.live-spark {
+  width: 80px;
+  height: 24px;
+}
+
+.live-spark path {
+  fill: none;
+  stroke: var(--viz-balance);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.live-coin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.live-coin img {
+  border-radius: 50%;
+}
+
+.live-funds__name {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* Search box with a dropdown of results */
+.live-search {
+  position: relative;
+}
+
+.live-search__results {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  max-height: 260px;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  box-shadow: var(--shadow-soft);
+  list-style: none;
+}
+
+.live-search__results button {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.live-search__results button:hover,
+.live-search__results button:focus-visible {
+  outline: none;
+  background: var(--stone);
+}
+
+.live-setup,
+.live-pending {
+  display: grid;
+  gap: 10px;
+}
+
+/* Weather */
+.live-weather__now {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.live-weather__now svg {
+  color: var(--clay);
+}
+
+.live-aqi {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--stone);
+}
+
+.live-aqi.is-0 {
+  background: color-mix(in srgb, var(--olive) 18%, var(--paper));
+  color: var(--olive-ink);
+}
+
+.live-aqi.is-2,
+.live-aqi.is-3,
+.live-aqi.is-4,
+.live-aqi.is-5 {
+  background: color-mix(in srgb, var(--clay) 18%, var(--paper));
+  color: var(--clay-ink);
+}
+
+.live-forecast {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.live-forecast li {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  font-size: var(--text-xs);
+}
+
+.live-forecast svg {
+  color: var(--ink-soft);
+}
+
+/* Inflation */
+.live-bars {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.live-bars li {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(60px, 1fr) 48px;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--text-sm);
+}
+
+.live-bars__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.live-bars__track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--stone-strong);
+  overflow: hidden;
+}
+
+.live-bars__track span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--viz-expense);
+}
+
+.live-bars__track span.is-negative {
+  background: var(--viz-income);
+}
+
+.live-bars__value {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.live-history ol {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.live-history li {
+  display: grid;
+  flex: 1;
+  justify-items: center;
+  gap: 2px;
+  font-size: 10px;
+}
+
+.live-history__bar {
+  width: 100%;
+  max-width: 24px;
+  border-radius: 4px 4px 0 0;
+  background: var(--viz-balance);
+}
+
+.live-history__value {
+  font-variant-numeric: tabular-nums;
+}
+
+.live-history__year {
+  color: var(--ink-faint);
+}
+
+/* Exchange rates */
+.live-convert {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 90px auto;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sm);
+}
+
+.live-add {
+  justify-self: start;
+  width: auto;
+}
+
+/* News */
+.live-news__filters .select {
+  width: auto;
+}
+
+.live-news {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.live-news li {
+  display: grid;
+  gap: 2px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.live-news a {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.live-news a:hover {
+  text-decoration: underline;
+}
+
+.live-news p {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+.live-key summary {
+  color: var(--ink-faint);
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.live-key form {
+  margin-top: 8px;
+}
+
+.live-setup a svg {
+  display: inline;
+  vertical-align: -1px;
+}
+
+/* ── Entertainment ─────────────────────────────────── */
+.ent {
+  display: grid;
+  gap: 14px;
+}
+
+.ent__title {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+}
+
+.ent__layout {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
+.ent-tabs,
+.ent-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ent-tab,
+.ent-chip {
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ent-tab.is-on,
+.ent-chip.is-on {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.ent-chip.is-on .live-muted {
+  color: inherit;
+  opacity: 0.7;
+}
+
+.ent-tab:focus-visible,
+.ent-chip:focus-visible,
+.ent-action:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.ent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ent-card {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-rows: 1fr auto; /* the actions row sits at the bottom of every card */
+  gap: 10px 12px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+.ent-card__poster {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--stone);
+  color: var(--ink-faint);
+}
+
+.ent-card__poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ent-card__rating {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ent-card__body {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ent-card h3 {
+  font-size: var(--text-base);
+  line-height: 1.3;
+}
+
+.ent-card__overview {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.ent-card__overview.is-open {
+  display: block;
+}
+
+.ent-card__more {
+  justify-self: start;
+  font-size: var(--text-xs);
+}
+
+.ent-card__meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* One full-width row under poster and text, so the buttons line up across cards. */
+.ent-card__actions {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.ent-card__actions .ent-action:not(:first-child) {
+  flex: 1;
+  justify-content: center;
+}
+
+.ent-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ent-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 1 320px;
+  min-width: 200px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-faint);
+}
+
+.ent-search:focus-within {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 18%, transparent);
+}
+
+.ent-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+
+.ent-search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.ent-search button {
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+
+.ent-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ent-action:hover {
+  border-color: var(--stone-strong);
+  color: var(--ink);
+}
+
+.ent-action.is-on {
+  border-color: color-mix(in srgb, var(--clay) 60%, var(--line));
+  background: color-mix(in srgb, var(--clay) 14%, var(--paper));
+  color: var(--clay-ink);
+}
+
+/* Cricket */
+.ent-matches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  column-gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ent-matches > li {
+  display: grid;
+  gap: 4px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.ent-match__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-xs);
+}
+
+.ent-live {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--clay) 18%, var(--paper));
+  color: var(--clay-ink);
+  font-weight: 700;
+}
+
+.ent-match__name {
+  font-weight: 600;
+}
+
+.ent-match__score {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.ent-match__score li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* Stocks */
+/* .live-list.live-stocks beats the generic .live-list li:has(.live-spark) rule. */
+.live-list.live-stocks li {
+  grid-template-columns: minmax(0, 1fr) auto auto auto auto auto;
+}
+
+.live-search__results--static {
+  position: static;
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .live-list.live-stocks li {
+    grid-template-columns: minmax(0, 1fr) auto auto auto auto;
+    gap: 8px;
+  }
+
+  .live-stocks .live-spark {
+    display: none;
+  }
+}

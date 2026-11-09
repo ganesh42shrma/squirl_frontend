@@ -1,3 +1,5 @@
+import { isGuestMode, HIDDEN_AMOUNT } from './guestMode.js';
+
 const rupees = new Intl.NumberFormat('en-IN', {
   style: 'currency',
   currency: 'INR',
@@ -13,6 +15,7 @@ const rupeesRounded = new Intl.NumberFormat('en-IN', {
 
 // ₹1,20,000 – Indian digit grouping.
 export function formatMoney(amount, { rounded = false } = {}) {
+  if (isGuestMode()) return HIDDEN_AMOUNT;
   return (rounded ? rupeesRounded : rupees).format(amount || 0);
 }
 
@@ -41,6 +44,7 @@ export function daysSince(value) {
 
 // Compact amounts for axis ticks: ₹12k, ₹1.2L (lakh), ₹1.5Cr, the way they're said out loud in India.
 export function shortMoney(n) {
+  if (isGuestMode()) return HIDDEN_AMOUNT;
   const sign = n < 0 ? '-' : '';
   const a = Math.abs(n);
   if (a >= 10000000) return `${sign}₹${(a / 10000000).toFixed(a % 10000000 ? 1 : 0)}Cr`;

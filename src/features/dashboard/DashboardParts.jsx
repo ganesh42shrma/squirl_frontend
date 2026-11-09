@@ -1,3 +1,4 @@
+import { maskFinancialText } from '../../lib/guestMode';
 import { useCallback, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Question, Warning } from '@phosphor-icons/react';
@@ -283,8 +284,8 @@ export function Recent({ rows }) {
         {rows.map((tx) => (
           <li key={tx._id}>
             <span className="recent__date num">{formatDay(tx.date)}</span>
-            <span className="recent__desc" title={tx.description}>
-              {tx.description}
+            <span className="recent__desc" title={maskFinancialText(tx.description)}>
+              {maskFinancialText(tx.description)}
               <span className="recent__meta">
                 {tx.category ? (tx.category.parent ? `${tx.category.parent.name} › ${tx.category.name}` : tx.category.name) : 'Not sorted'} · {formatAccount(tx.account)}
               </span>

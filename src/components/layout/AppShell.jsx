@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Logo } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
+import { GuestModeToggle } from './GuestModeToggle';
+import { useGuestMode } from '../../lib/useGuestMode';
 import { BackgroundNotices } from './BackgroundNotices';
 import { useLogout, useMe } from '../../features/auth/useAuth';
 import './layout.css';
@@ -12,6 +14,8 @@ const NAV = [
   { to: '/app/ledger', label: 'Ledger' },
   { to: '/app/highlights', label: 'Highlights' },
   { to: '/app/payments', label: 'EMIs & bills' },
+  { to: '/app/goals', label: 'Goals' },
+  { to: '/app/live', label: 'Live' },
   { to: '/app/imports', label: 'Imports' },
   { to: '/app/sort-out', label: 'Sort out' },
 ];
@@ -68,6 +72,7 @@ function AccountMenu() {
 }
 
 export function AppShell() {
+  const { guestMode } = useGuestMode();
   return (
     <div className="shell">
       <header className="shell__header">
@@ -79,10 +84,13 @@ export function AppShell() {
             </NavLink>
           ))}
         </nav>
+        <GuestModeToggle />
         <ThemeToggle />
         <AccountMenu />
       </header>
-      <main className="shell__main">
+      {/* Rebuild views and close open editors when privacy changes, including memoized
+          ledger rows and animated figures, so no previous amount stays on screen. */}
+      <main className="shell__main" key={guestMode ? 'guest' : 'private'}>
         <Outlet />
       </main>
       <BackgroundNotices />

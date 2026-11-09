@@ -1,3 +1,4 @@
+import { maskFinancialText } from '../../lib/guestMode';
 import { useMemo, useState } from 'react';
 import { Sparkle, X } from '@phosphor-icons/react';
 import { Button } from '../../components/ui/Button';
@@ -152,24 +153,24 @@ export function Suggestions() {
           <ul className="suggest__list">
             {items.slice(0, shown).map((s) => (
               <li key={s._id} className="suggest__item">
-                <input type="checkbox" aria-label={`Apply to ${s.merchant}`} checked={isTicked(s)} onChange={() => toggle(s)} disabled={apply.isPending} />
-                <span className="suggest__desc" title={s.example}>
-                  {s.merchant}
+                <input type="checkbox" aria-label={`Apply to ${maskFinancialText(s.merchant)}`} checked={isTicked(s)} onChange={() => toggle(s)} disabled={apply.isPending} />
+                <span className="suggest__desc" title={maskFinancialText(s.example)}>
+                  {maskFinancialText(s.merchant)}
                   <span className="suggest__meta">
-                    {s.direction === 'debit' ? 'Money out' : 'Money in'} · {plural(s.rowCount, 'row')} · {s.example}
+                    {s.direction === 'debit' ? 'Money out' : 'Money in'} · {plural(s.rowCount, 'row')} · {maskFinancialText(s.example)}
                   </span>
                 </span>
                 <CategorySelect
                   value={overrides[s._id] || s.category._id}
                   onChange={(category) => category && setOverrides((o) => ({ ...o, [s._id]: category }))}
-                  aria-label={`Category for ${s.merchant}`}
-                  title={`Category for “${s.merchant}”`}
+                  aria-label={`Category for ${maskFinancialText(s.merchant)}`}
+                  title={`Category for “${maskFinancialText(s.merchant)}”`}
                 />
                 <span className={`suggest__confidence is-${s.confidence}`}>{CONFIDENCE[s.confidence]}</span>
                 <button
                   type="button"
                   className="suggest__dismiss"
-                  aria-label={`Dismiss the suggestion for ${s.merchant}`}
+                  aria-label={`Dismiss the suggestion for ${maskFinancialText(s.merchant)}`}
                   title="Not right: dismiss (sort these by hand)"
                   onClick={() => dismiss.mutate(s._id)}
                 >

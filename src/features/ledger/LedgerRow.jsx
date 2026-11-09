@@ -1,3 +1,4 @@
+import { isGuestMode, maskFinancialText } from '../../lib/guestMode';
 import { memo, useState } from 'react';
 import { Plus, NotePencil, UsersThree, Sparkle } from '@phosphor-icons/react';
 import { CategoryIcon } from '../../components/ui/CategoryIcon';
@@ -33,6 +34,7 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
   const [editing, setEditing] = useState(null);
   const [noteOpen, setNoteOpen] = useState(false);
   const imported = tx.source === 'import';
+  const readOnly = imported || isGuestMode();
   const [draftTags, setDraftTags] = useState(tx.tags);
   const updateTransaction = useUpdateTransaction();
   const toast = useToast();
@@ -62,13 +64,13 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
   const label = categoryLabel(tx.category);
 
   const startEditing = (field) => {
-    if (imported && ['date', 'description', 'amount'].includes(field)) return;
+    if ((imported || isGuestMode()) && ['date', 'description', 'amount'].includes(field)) return;
     if (field === 'tags') setDraftTags(tx.tags);
     setEditing(field);
   };
 
   // A read-only cell that turns into an editor on click, Enter or Space.
-  const cellProps = (field) => imported && ['date', 'description', 'amount'].includes(field) ? {} : ({
+  const cellProps = (field) => (imported || isGuestMode()) && ['date', 'description', 'amount'].includes(field) ? {} : ({
     role: 'button',
     tabIndex: 0,
     onClick: () => startEditing(field),
@@ -88,7 +90,7 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
           type="checkbox"
           checked={selected}
           onChange={() => onToggle(tx._id)}
-          aria-label={`Select ${tx.description}`}
+          aria-label={`Select ${maskFinancialText(tx.description)}`}
         />
       </div>
 
@@ -104,7 +106,7 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
             aria-label="Date"
           />
         ) : (
-          <span className={imported ? 'ledger-date' : 'editable'} {...cellProps('date')} aria-label={`Date ${formatDay(tx.date)}${imported ? '' : ', edit'}`}>
+          <span className={readOnly ? 'ledger-date' : 'editable'} {...cellProps('date')} aria-label={`Date ${formatDay(tx.date)}${readOnly ? '' : ', edit'}`}>
             {formatDay(tx.date)}
           </span>
         )}
@@ -121,17 +123,17 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
             aria-label="Description"
           />
         ) : (
-          <span className={`${imported ? 'ledger-statement' : 'editable'} ledger-description`} {...cellProps('description')} title={tx.description}>
-            <span className="ledger-description__text">{tx.description}</span>
+          <span className={`${readOnly ? 'ledger-statement' : 'editable'} ledger-description`} {...cellProps('description')} title={maskFinancialText(tx.description)}>
+            <span className="ledger-description__text">{maskFinancialText(tx.description)}</span>
             <span className="ledger-description__meta">
               {tx.source === 'import' ? `${formatAccount(tx.account)} statement` : formatAccount(tx.account)}
-              {tx.notes && <span className="ledger-note-preview"> · {tx.notes}</span>}
+              {tx.notes && !isGuestMode() && <span className="ledger-note-preview"> · {maskFinancialText(tx.notes)}</span>}
             </span>
           </span>
         )}
         <div className="ledger-row-actions">
-          <button type="button" className={`ledger-action${tx.notes ? ' has-note' : ''}`} onClick={() => setNoteOpen(true)} aria-label={`${tx.notes ? 'Edit' : 'Add'} note for ${tx.description}`} title={tx.notes ? `Edit note: ${tx.notes}` : 'Add note'}><NotePencil size={16} aria-hidden="true" /></button>
-          {onAddMember && <button type="button" className="ledger-action ledger-add-member" onClick={() => onAddMember(tx)} aria-label={`Add to family & friends from ${tx.description}`} title="Add to family & friends"><UsersThree size={16} aria-hidden="true" /></button>}
+          <button type="button" className={`ledger-action${tx.notes ? ' has-note' : ''}`} disabled={isGuestMode()} onClick={() => setNoteOpen(true)} aria-label={`${tx.notes ? 'Edit' : 'Add'} note for ${maskFinancialText(tx.description)}`} title={isGuestMode() ? 'Notes hidden in guest mode' : tx.notes ? `Edit note: ${tx.notes}` : 'Add note'}><NotePencil size={16} aria-hidden="true" /></button>
+          {onAddMember && <button type="button" className="ledger-action ledger-add-member" onClick={() => onAddMember(tx)} aria-label={`Add to family & friends from ${maskFinancialText(tx.description)}`} title="Add to family & friends"><UsersThree size={16} aria-hidden="true" /></button>}
         </div>
       </div>
 
@@ -142,7 +144,7 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
             value={tx.category?._id}
             defaultOpen
             placeholder="No category"
-            title={`Category for “${tx.description}”`}
+            title={`Category for “${maskFinancialText(tx.description)}”`}
             onChange={(id) => save({ category: id })}
             onClose={() => setEditing(null)}
             aria-label="Category"
@@ -187,7 +189,7 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
           />
         ) : (
           <span
-            className={`${imported ? '' : 'editable '}num ledger-amount ${tx.type === 'credit' ? 'amount-credit' : 'amount-debit'}`}
+            className={`${readOnly ? '' : 'editable '}num ledger-amount ${tx.type === 'credit' ? 'amount-credit' : 'amount-debit'}`}
             {...cellProps('amount')}
           >
             {`${tx.type === 'credit' ? '+' : '−'}${formatMoney(tx.amount)}`}

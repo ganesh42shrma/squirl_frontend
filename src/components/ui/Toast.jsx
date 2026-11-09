@@ -1,3 +1,5 @@
+import { useGuestMode } from '../../lib/useGuestMode';
+import { maskFinancialText } from '../../lib/guestMode';
 import { createContext, useCallback, useContext, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import './Toast.css';
@@ -7,6 +9,7 @@ const ToastContext = createContext(null);
 let nextId = 1;
 
 export function ToastProvider({ children }) {
+  useGuestMode();
   const [toasts, setToasts] = useState([]);
 
   const dismiss = useCallback((id) => setToasts((all) => all.filter((t) => t.id !== id)), []);
@@ -35,7 +38,7 @@ export function ToastProvider({ children }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, transition: { duration: 0.15 } }}
             >
-              <span>{t.message}</span>
+              <span>{typeof t.message === 'string' ? maskFinancialText(t.message) : t.message}</span>
               {t.action && (
                 <button
                   type="button"

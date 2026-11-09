@@ -1,0 +1,537 @@
+/* Goals: built on the EMIs & bills card language (commitments.css), plus a chart and the plan check. */
+
+.goal-cards {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+}
+
+.goal-card.is-paused {
+  opacity: 0.75;
+}
+
+.goal-card__link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.goal-card__link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* The whole card is clickable through its title link. */
+.goal-card {
+  position: relative;
+}
+
+.goal-card__link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+}
+
+.goal-card__link:focus-visible {
+  outline: none;
+}
+
+.goal-card__link:focus-visible::after {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ── Progress ───────────────────────────────────────── */
+.goal-progress {
+  display: grid;
+  gap: 6px;
+}
+
+.goal-progress__bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--stone-strong);
+  overflow: hidden;
+}
+
+.goal-progress__bar span {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  border-radius: 999px;
+  background: var(--viz-income);
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.goal-progress__label {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+.goal-progress__label strong {
+  color: var(--ink);
+}
+
+/* Status badges always carry a word, never colour alone. */
+.goal-badge {
+  flex: none;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--stone);
+  color: var(--ink-soft);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.goal-badge.is-ahead,
+.goal-badge.is-reached {
+  background: color-mix(in srgb, var(--olive) 18%, var(--paper));
+  color: var(--olive-ink);
+}
+
+.goal-badge.is-behind {
+  background: color-mix(in srgb, var(--clay) 18%, var(--paper));
+  color: var(--clay-ink);
+}
+
+/* ── Empty state ───────────────────────────────────── */
+.goal-empty {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  max-width: 560px;
+  padding: 32px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-lg);
+  color: var(--ink-soft);
+}
+
+.goal-empty svg {
+  color: var(--clay);
+}
+
+.goal-empty h2 {
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+}
+
+/* ── Form ──────────────────────────────────────────── */
+.goal-form__name {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.goal-help {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--olive);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--olive) 8%, var(--paper));
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+.goal-help__price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.goal-help__price strong {
+  color: var(--ink);
+  font-size: var(--text-lg);
+}
+
+.goal-help__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.goal-help__tip {
+  color: var(--ink-faint);
+}
+
+.goal-help__foot {
+  color: var(--ink-faint);
+  font-size: var(--text-xs);
+}
+
+.goal-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.goal-check input {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: var(--clay);
+}
+
+.goal-check > span {
+  display: grid;
+  gap: 2px;
+}
+
+.goal-preview {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--stone) 40%, var(--paper));
+}
+
+.goal-preview--empty {
+  color: var(--ink-faint);
+  font-size: var(--text-sm);
+}
+
+.goal-preview__headline {
+  font-size: var(--text-base);
+  line-height: 1.5;
+}
+
+.goal-preview__headline.is-warning {
+  color: var(--clay-ink);
+}
+
+/* ── Chart ─────────────────────────────────────────── */
+.goal-chart {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.goal-chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  color: var(--ink-soft);
+  font-size: var(--text-xs);
+}
+
+.goal-chart__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.goal-chart__legend i {
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  border-top: 2px solid var(--viz-income);
+}
+
+.goal-chart__legend i.is-plan {
+  border-top-style: dashed;
+}
+
+.goal-chart__legend i.is-price {
+  border-top-color: var(--viz-expense);
+}
+
+.goal-chart__plot {
+  position: relative;
+}
+
+.goal-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  touch-action: pan-y;
+}
+
+.goal-chart__grid line {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.goal-chart__grid text,
+.goal-chart__year,
+.goal-chart__end {
+  fill: var(--ink-faint);
+  font-size: 11px;
+}
+
+.goal-chart__end {
+  fill: var(--ink-soft);
+  font-weight: 600;
+}
+
+.goal-chart__saved,
+.goal-chart__plan,
+.goal-chart__price {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.goal-chart__saved {
+  stroke: var(--viz-income);
+  stroke-width: 2.5;
+}
+
+.goal-chart__plan {
+  stroke: var(--viz-income);
+  stroke-dasharray: 5 5;
+}
+
+.goal-chart__price {
+  stroke: var(--viz-expense);
+}
+
+.goal-chart__hover line {
+  stroke: var(--ink-faint);
+  stroke-width: 1;
+}
+
+.goal-chart__hover circle {
+  stroke: var(--paper);
+  stroke-width: 2;
+}
+
+.goal-chart__hover circle.is-saved {
+  fill: var(--viz-income);
+}
+
+.goal-chart__hover circle.is-price {
+  fill: var(--viz-expense);
+}
+
+.goal-chart__tip {
+  position: absolute;
+  top: 0;
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  box-shadow: var(--shadow-soft);
+  color: var(--ink-soft);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.goal-chart__tip strong {
+  color: var(--ink);
+}
+
+.goal-chart__table summary {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+/* ── Detail ────────────────────────────────────────── */
+.goal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: -24px;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  text-decoration: none;
+}
+
+.goal-back:hover {
+  color: var(--ink);
+}
+
+.goal-summary {
+  display: grid;
+  gap: 18px;
+}
+
+.goal-figures dd {
+  font-size: var(--text-lg);
+}
+
+.goal-figures dd.is-behind {
+  color: var(--clay-ink);
+}
+
+.goal-ai {
+  display: grid;
+  gap: 12px;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--olive) 6%, var(--paper));
+}
+
+.goal-ai__head,
+.goal-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.goal-ai h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+}
+
+.goal-ai h2 svg {
+  color: var(--olive-ink);
+}
+
+.goal-ai__headline {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.goal-ai__actions {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.goal-verdict {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--stone);
+  color: var(--ink-soft);
+  font-size: var(--text-xs);
+  vertical-align: 3px;
+}
+
+.goal-verdict.is-comfortable {
+  background: color-mix(in srgb, var(--olive) 18%, var(--paper));
+  color: var(--olive-ink);
+}
+
+.goal-verdict.is-stretch,
+.goal-verdict.is-hard {
+  background: color-mix(in srgb, var(--clay) 18%, var(--paper));
+  color: var(--clay-ink);
+}
+
+.goal-money .cm-amount {
+  color: var(--olive-ink);
+  font-size: var(--text-base);
+}
+
+.goal-money .cm-amount.is-out {
+  color: var(--clay-ink);
+}
+
+.goal-candidates {
+  display: grid;
+  gap: 4px;
+  max-height: 420px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.goal-candidates li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.goal-candidates__amount {
+  font-size: var(--text-base);
+}
+
+.goal-detail__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 640px) {
+  .goal-form__name {
+    grid-template-columns: 1fr;
+  }
+
+  .goal-figures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .goal-candidates li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .goal-candidates li .btn {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .goal-progress__bar span {
+    transition: none;
+  }
+}
+
+/* A hint under one field must not stretch its neighbours' inputs. */
+.goal-form .cm-grid .field {
+  align-content: start;
+}
+
+.goal-money .link-button {
+  white-space: nowrap;
+}
+
+.goal-help__sources {
+  display: inline;
+}
+
+.goal-help__sources summary {
+  display: inline;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.goal-help__sources ul {
+  display: grid;
+  gap: 2px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.goal-help__sources a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink-soft);
+}
+
+.goal-cpi .link-button {
+  font-size: inherit;
+}

@@ -1,3 +1,4 @@
+import { maskFinancialText } from '../../lib/guestMode';
 import { useState } from 'react';
 import { Dialog } from '../../components/ui/Dialog';
 import { Button } from '../../components/ui/Button';
@@ -25,7 +26,7 @@ export function AddMemberDialog({ transaction, onClose }) {
           onClose();
         } });
       }}>
-        <p className="member-source" title={transaction.description}>{transaction.description}</p>
+        <p className="member-source" title={maskFinancialText(transaction.description)}>{maskFinancialText(transaction.description)}</p>
         <MemberFields value={form} onChange={setForm} />
         <p className="member-hint">This payment and matching past payments move to Family.</p>
         {save.isError && <p className="import-error">{describeError(save.error)}</p>}

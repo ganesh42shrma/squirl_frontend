@@ -1,3 +1,4 @@
+import { maskFinancialText } from '../../lib/guestMode';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
@@ -54,8 +55,8 @@ export function LearnedMerchants() {
           <ul className="learned__list">
             {visible.map((rule) => (
               <li key={rule._id}>
-                <span className="learned__merchant" title={rule.example}>
-                  {rule.merchant}
+                <span className="learned__merchant" title={maskFinancialText(rule.example)}>
+                  {maskFinancialText(rule.merchant)}
                   <span className="learned__meta">
                     {rule.direction === 'debit' ? 'Money out' : 'Money in'}
                     {rule.hits > 0 && ` · sorted ${rule.hits} row${rule.hits === 1 ? '' : 's'}`}
@@ -66,7 +67,7 @@ export function LearnedMerchants() {
                   type="button"
                   className="text-danger"
                   onClick={() => remove.mutate(rule._id, { onSuccess: () => toast('Forgot that merchant') })}
-                  aria-label={`Forget ${rule.merchant}`}
+                  aria-label={`Forget ${maskFinancialText(rule.merchant)}`}
                 >
                   Forget
                 </button>

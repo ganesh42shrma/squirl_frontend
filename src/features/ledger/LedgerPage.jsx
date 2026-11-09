@@ -1,3 +1,4 @@
+import { isGuestMode } from '../../lib/guestMode';
 import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowDown, ArrowUp } from '@phosphor-icons/react';
@@ -193,7 +194,7 @@ export function LedgerPage() {
             </div>
           </div>
 
-          {!focusedView && <AddRow onAdded={(created) => { changePage(1); setNewId(created._id); }} />}
+          {!focusedView && !isGuestMode() && <AddRow onAdded={(created) => { changePage(1); setNewId(created._id); }} />}
 
           {changingPage &&
             Array.from({ length: 6 }, (_, i) => (

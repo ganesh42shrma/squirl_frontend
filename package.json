@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test:dashboard": "node scripts/test-dashboard.mjs",
     "test:imports": "node scripts/test-imports.mjs",
-    "test:ledger-pagination": "node scripts/test-ledger-pagination.mjs"
+    "test:ledger-pagination": "node scripts/test-ledger-pagination.mjs",
+    "test:guest-mode": "node scripts/test-guest-mode.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

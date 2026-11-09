@@ -1,3 +1,4 @@
+import { isGuestMode, maskFinancialText } from '../../lib/guestMode';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -32,6 +33,7 @@ function rangeOptions(first, last) {
 function Story({ range }) {
   const status = useLlmStatus();
   const write = useWriteSummary();
+  if (isGuestMode()) return <section className="story"><h2 className="story__title">Financial overview</h2><p className="story__hint">Hidden in guest mode.</p></section>;
   const result = write.data && write.data.from === range.from && write.data.to === range.to ? write.data : null;
 
   return (
@@ -200,8 +202,8 @@ function Biggest({ rows }) {
       {rows.map((tx) => (
         <li key={tx._id}>
           <span className="recent__date recent__date--full num">{formatDate(tx.date)}</span>
-          <span className="recent__desc" title={tx.description}>
-            {tx.description}
+          <span className="recent__desc" title={maskFinancialText(tx.description)}>
+            {maskFinancialText(tx.description)}
             <span className="recent__meta">
               {tx.category || 'Not sorted'} · {formatAccount(tx.account)}
             </span>
@@ -262,8 +264,8 @@ export function HistoryView() {
               {h.highlights.map((item) => (
                 <li key={item.id} className="highlight">
                   <p className="highlight__title">{item.title}</p>
-                  <p className="highlight__value">{item.value}</p>
-                  <p className="highlight__detail">{item.detail}</p>
+                  <p className="highlight__value">{maskFinancialText(item.value)}</p>
+                  <p className="highlight__detail">{maskFinancialText(item.detail)}</p>
                 </li>
               ))}
             </ul>

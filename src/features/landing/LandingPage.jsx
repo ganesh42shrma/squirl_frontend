@@ -1,96 +1,128 @@
 import { Link } from 'react-router-dom';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion, useMotionValueEvent, useReducedMotion, useScroll, useSpring } from 'motion/react';
+import { useState } from 'react';
 import { Logo } from '../../components/layout/Logo';
 import { ThemeToggle } from '../../components/layout/ThemeToggle';
-import { BlurText } from '../../components/fx/BlurText';
-import { SquirrelLedger } from '../../components/illustrations/SquirrelLedger';
-import { GrowingAcorns, LogSketch, MonthSketch, StatementSketch } from '../../components/illustrations/Sketches';
+import { HeroScene } from './scenes/HeroScene';
+import { EntryRibbon } from './scenes/EntryRibbon';
+import { ScrollChapter } from './scenes/ScrollChapter';
+import { StatementStage } from './scenes/StatementStage';
+import { CategoryDrumStage } from './scenes/CategoryDrumStage';
+import { MonthChartStage } from './scenes/MonthChartStage';
+import { PaymentsStack } from './scenes/PaymentsStack';
+import { VaultScene } from './scenes/VaultScene';
+import { ClosingScene } from './scenes/ClosingScene';
 import './landing.css';
 
-const FEATURES = [
-  {
-    Sketch: LogSketch,
-    title: 'Log it like a spreadsheet',
-    body: 'Type a row, press Enter, keep going. Every expense gets a category and a few tags, and nothing more than it needs.',
-  },
-  {
-    Sketch: StatementSketch,
-    title: 'Bring in your bank statements',
-    body: 'Upload an SBI or Kotak PDF. Rows you’ve already logged are skipped, and any import can be undone.',
-  },
-  {
-    Sketch: MonthSketch,
-    title: 'See the month clearly',
-    body: 'Spending, income, investments and money lent to friends stay apart, so a credit card bill never looks like a shopping spree.',
-  },
+const IMPORT_STEPS = [
+  { title: 'Drop in a PDF', body: 'SBI and Kotak e-statements, password-protected ones included.' },
+  { title: 'Rows become entries', body: 'Each line on the statement lands in your ledger with its date and amount.' },
+  { title: 'Duplicates are skipped', body: 'Overlapping statements are safe: transactions imported before are recognised and skipped.' },
+  { title: 'Undo any import', body: 'Changed your mind? Take a whole import back out in one go.' },
 ];
 
-export function LandingPage() {
+const SORT_STEPS = [
+  { title: 'Categories from day one', body: 'Rent, society maintenance, SIPs, mobile recharge: defaults that fit, and you can add your own, with tags.' },
+  { title: 'Merchants it remembers', body: 'Sort a merchant once, and its later rows file themselves.' },
+  { title: 'Your local model fills the gaps', body: 'Unsorted merchants are categorized in the background. Review or change any category in the ledger.' },
+];
+
+const MONTH_STEPS = [
+  { title: 'Five kinds of money, kept apart', body: 'Spent, earned, invested, moved and lent never mix, so a credit card bill never looks like a shopping spree.' },
+  { title: 'Month against month', body: 'Charts on your dashboard show where each month went, next to the ones before it.' },
+  { title: 'Highlights in plain words', body: 'A short written summary from your local model. Every number in it is worked out by Squirl.' },
+];
+
+function LandingNav() {
   const reduceMotion = useReducedMotion();
-  const rise = (delay) =>
-    reduceMotion
-      ? {}
-      : {
-          initial: { opacity: 0, y: 10 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] },
-        };
+  const { scrollY, scrollYProgress } = useScroll();
+  const [raised, setRaised] = useState(false);
+  const bar = useSpring(scrollYProgress, { stiffness: 140, damping: 26, mass: 0.4 });
+  useMotionValueEvent(scrollY, 'change', (y) => {
+    const next = y > 24;
+    setRaised((current) => (current === next ? current : next));
+  });
 
   return (
-    <div className="landing">
-      <header className="landing__nav">
+    <header className={`landing__nav${raised ? ' is-raised' : ''}`}>
+      <div className="landing__nav-inner">
         <Logo />
+        <nav className="landing__links" aria-label="On this page">
+          <a href="#story">Imports</a>
+          <a href="#sorting">Categories</a>
+          <a href="#month">Charts</a>
+          <a href="#payments">Payments</a>
+        </nav>
         <div className="landing__nav-actions">
           <ThemeToggle />
-          <Link to="/app" className="btn btn--quiet">
+          <Link to="/login" className="landing__signin">
+            Sign in
+          </Link>
+          <Link to="/app" className="btn btn--primary landing__open">
             Open ledger
           </Link>
         </div>
-      </header>
+      </div>
+      {!reduceMotion && <motion.span className="landing__progress" style={{ scaleX: bar }} aria-hidden="true" />}
+    </header>
+  );
+}
 
-      <section className="hero">
-        <div className="hero__copy">
-          <BlurText as="h1" className="hero__title" text="Know where your money goes." delay={0.2} />
-          <motion.p className="hero__lede" {...rise(1.0)}>
-            Squirl is a quiet place to log what you spend, bring in your bank statements, and see each month
-            clearly.
-          </motion.p>
-          <motion.div className="hero__actions" {...rise(1.2)}>
-            <Link to="/app" className="btn btn--primary hero__cta">
-              Open your ledger
-            </Link>
-            <Link to="/app/imports" className="hero__secondary">
-              Import a statement
-            </Link>
-          </motion.div>
-        </div>
-        <div className="hero__art">
-          <SquirrelLedger className="hero__drawing" />
-        </div>
-      </section>
+export function LandingPage() {
+  return (
+    <div className="landing">
+      <a className="skip-link" href="#story">
+        Skip to how it works
+      </a>
+      <LandingNav />
+      <main>
+        <HeroScene />
+        <EntryRibbon />
 
-      <section className="features" aria-label="What Squirl does">
-        {FEATURES.map(({ Sketch, title, body }) => (
-          <article key={title} className="feature">
-            <Sketch />
-            <h2>{title}</h2>
-            <p>{body}</p>
-          </article>
-        ))}
-      </section>
+        <ScrollChapter
+          id="story"
+          kicker="Statement imports"
+          title="From statement to ledger, without the busywork."
+          steps={IMPORT_STEPS}
+          length={340}
+        >
+          {(progress) => <StatementStage progress={progress} />}
+        </ScrollChapter>
 
-      <section className="closing">
-        <div className="closing__copy">
-          <h2>Small entries, kept every day, add up to a clear picture.</h2>
-          <Link to="/app" className="btn btn--accent">
-            Start logging
-          </Link>
-        </div>
-        <GrowingAcorns />
-      </section>
+        <ScrollChapter
+          id="sorting"
+          kicker="Categories & tags"
+          title="Every row finds its place."
+          steps={SORT_STEPS}
+          length={300}
+          flip
+        >
+          {(progress) => <CategoryDrumStage progress={progress} />}
+        </ScrollChapter>
+
+        <ScrollChapter
+          id="month"
+          kicker="Charts & highlights"
+          title="See the month clearly."
+          steps={MONTH_STEPS}
+          length={300}
+        >
+          {(progress) => <MonthChartStage progress={progress} />}
+        </ScrollChapter>
+
+        <PaymentsStack />
+        <VaultScene />
+        <ClosingScene />
+      </main>
 
       <footer className="landing__footer">
+        <Logo />
         <p>Squirl runs on your own machine. Your money data stays in your own database.</p>
+        <nav aria-label="Account">
+          <Link to="/signup">Create account</Link>
+          <Link to="/login">Sign in</Link>
+          <Link to="/app">Open ledger</Link>
+        </nav>
       </footer>
     </div>
   );

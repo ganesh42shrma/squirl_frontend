@@ -1,3 +1,4 @@
+import { isGuestMode, maskFinancialText } from '../../lib/guestMode';
 import { useState } from 'react';
 import { CalendarCheck, CheckCircle, Clock, Plus, Warning } from '@phosphor-icons/react';
 import { Button } from '../../components/ui/Button';
@@ -86,14 +87,14 @@ function ItemActions({ item, onEdit }) {
   const [confirm, setConfirm] = useState(false);
   return (
     <div className="cm-actions">
-      <button type="button" className="link-button" onClick={() => onEdit(item)}>
+      <button type="button" className="link-button" disabled={isGuestMode()} title={isGuestMode() ? 'Turn off guest mode to edit financial details' : undefined} onClick={() => onEdit(item)}>
         Edit
       </button>
       <button
         type="button"
         className="link-button cm-danger"
         onClick={() =>
-          confirm ? remove.mutate(item._id, { onSuccess: () => toast(`Deleted ${item.name}`), onError: (e) => toast(describeError(e), { tone: 'error' }) }) : setConfirm(true)
+          confirm ? remove.mutate(item._id, { onSuccess: () => toast(`Deleted ${maskFinancialText(item.name)}`), onError: (e) => toast(describeError(e), { tone: 'error' }) }) : setConfirm(true)
         }
         onBlur={() => setConfirm(false)}
       >
@@ -110,7 +111,7 @@ function LoanCard({ item, onEdit }) {
     <li className={`cm-card is-${item.status}`}>
       <div className="cm-card__head">
         <div>
-          <h3>{item.name}</h3>
+          <h3>{maskFinancialText(item.name)}</h3>
           <p className="cm-muted">
             {[item.lender, item.account && formatAccount(item.account), item.interestRate != null && `${item.interestRate}% a year`].filter(Boolean).join(' · ')}
           </p>
@@ -183,7 +184,7 @@ function BillRow({ item, onEdit }) {
   return (
     <li className={`cm-row is-${item.status}`}>
       <div className="cm-row__main">
-        <p className="cm-row__name">{item.name}</p>
+        <p className="cm-row__name">{maskFinancialText(item.name)}</p>
         <p className="cm-muted">
           {[KIND_LABELS[item.kind], FREQUENCY_LABELS[item.frequency], item.lender, item.account && formatAccount(item.account)].filter(Boolean).join(' · ')}
         </p>
@@ -209,7 +210,7 @@ function Detected({ onAdd }) {
         {data.map((d) => (
           <li key={d.matchKey}>
             <div>
-              <p className="cm-row__name">{d.name}</p>
+              <p className="cm-row__name">{maskFinancialText(d.name)}</p>
               <p className="cm-muted">
                 {money(d.amount)} around day {d.dueDay} · {d.months} months · last {formatDate(d.lastPaid)}
               </p>
@@ -217,6 +218,7 @@ function Detected({ onAdd }) {
             <Button
               variant="quiet"
               size="small"
+              disabled={isGuestMode()}
               onClick={() =>
                 onAdd({ kind: d.kind, name: d.name, amount: d.amount, dueDay: d.dueDay, startDate: d.startDate, matchKey: d.matchKey, account: d.account })
               }
@@ -253,7 +255,7 @@ export function CommitmentsPage() {
           <h1>EMIs &amp; bills</h1>
           <p>Loans, subscriptions and auto-debits: what’s due, what’s paid, and what’s left on each loan. Squirl checks due dates against your statements.</p>
         </div>
-        <Button onClick={() => setForm({})}>
+        <Button disabled={isGuestMode()} onClick={() => setForm({})}>
           <Plus size={16} aria-hidden="true" /> Add
         </Button>
       </header>
@@ -278,7 +280,7 @@ export function CommitmentsPage() {
           {missed.map((i) => (
             <li key={i._id}>
               <Warning size={18} weight="duotone" aria-hidden="true" />
-              No payment found for <strong>{i.name}</strong> due {formatDate(i.last.date)}, though your statements cover that date.
+              No payment found for <strong>{maskFinancialText(i.name)}</strong> due {formatDate(i.last.date)}, though your statements cover that date.
             </li>
           ))}
         </ul>
@@ -293,7 +295,7 @@ export function CommitmentsPage() {
             {upcoming.map((i) => (
               <li key={i._id} className={`is-${i.status}`}>
                 <span className="cm-upcoming__date">{formatDate(i.next.date).replace(/ \d{4}$/, '')}</span>
-                <span>{i.name}</span>
+                <span>{maskFinancialText(i.name)}</span>
                 <span className="num">{money(i.amount)}</span>
               </li>
             ))}
@@ -329,7 +331,7 @@ export function CommitmentsPage() {
 
       <Detected onAdd={(prefill) => setForm(prefill)} />
 
-      {form && <CommitmentForm initial={form} onClose={() => setForm(null)} onSaved={(saved) => toast(`${saved.name} saved`)} />}
+      {form && !isGuestMode() && <CommitmentForm initial={form} onClose={() => setForm(null)} onSaved={(saved) => toast(`${saved.name} saved`)} />}
     </div>
   );
 }
