@@ -2,6 +2,7 @@
 // results read (with guest mode hiding amounts), and where results open.
 import assert from 'node:assert/strict';
 import { navCommands, rankCommands, scoreCommand, describeAction, describeResult, savedMessage, resultLink, relativeDay, undoMessage, newClientId, submissionFor, canUndo, needsCategory, engineFor } from '../src/features/capture/paletteModel.js';
+import { photoTarget } from '../src/features/capture/paletteModel.js';
 import { setGuestMode } from '../src/lib/guestMode.js';
 
 // A tiny registry shaped like app/modules.js (the real one imports React pages).
@@ -122,5 +123,12 @@ assert.doesNotMatch(describeAction(expense, today).title, /40/);
 assert.doesNotMatch(savedMessage({ created: [{ type: 'transaction', amount: 40, label: 'Chai' }] }), /40/);
 assert.doesNotMatch(describeResult({ kind: 'commitment', title: 'Loan', amount: 12000 }, today).detail, /12/);
 setGuestMode(false);
+
+// A palette photo goes on the payment (created or matched), else the task, else the inbox note; never a habit.
+assert.deepEqual(photoTarget({ created: [{ type: 'habit', id: 'h1' }, { type: 'task', id: 't1' }, { type: 'transaction', id: 'x1', matched: true }] }), { ownerType: 'transaction', ownerId: 'x1' });
+assert.deepEqual(photoTarget({ created: [{ type: 'task', id: 't1' }] }), { ownerType: 'task', ownerId: 't1' });
+assert.deepEqual(photoTarget({ created: [], inbox: [{ _id: 'c1' }] }), { ownerType: 'capture', ownerId: 'c1' });
+assert.equal(photoTarget({ created: [{ type: 'habit', id: 'h1' }] }), null);
+assert.equal(photoTarget({}), null);
 
 console.log('capture UI tests passed');

@@ -5,6 +5,7 @@ import { describeError } from '../../api/client';
 import { formatMoney, todayISO } from '../../lib/format';
 import { CategorySelect } from '../categories/CategorySelect';
 import { FREQUENCY_LABELS, KIND_LABELS, previewEmi, useMerchantSearch, useSaveCommitment } from './useCommitments';
+import { AttachmentsPanel } from '../media/AttachmentsPanel';
 
 const blank = { kind: 'loan', name: '', lender: '', amount: '', frequency: 'monthly', dueDay: '5', startDate: todayISO(), endDate: '', principal: '', interestRate: '', tenureMonths: '', paidPrincipal: '', outstanding: '', balanceAsOf: '', account: '', category: null, matchKey: '', remindDays: '3', notes: '' };
 
@@ -221,6 +222,8 @@ export function CommitmentForm({ initial, onClose, onSaved }) {
 
         {save.isError && <p className="import-error">{describeError(save.error)}</p>}
       </form>
+      {/* Loan papers, the policy, the bill itself. Only once it is saved: photos belong to a real item. */}
+      {editing && <AttachmentsPanel ownerType="commitment" ownerId={initial._id} />}
     </Dialog>
   );
 }

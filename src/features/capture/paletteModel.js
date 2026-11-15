@@ -106,6 +106,19 @@ export function savedMessage({ created = [], inbox = [], capture, replayed }) {
   return `Checked in · ${item.label}`;
 }
 
+/**
+ * Where a photo taken in the palette goes once the capture is saved: the payment it created or matched, else the
+ * task, else the inbox note it became. A habit check-in can't hold photos, so that alone gives null.
+ */
+export function photoTarget({ created = [], inbox = [] } = {}) {
+  const payment = created.find((item) => item.type === 'transaction');
+  if (payment) return { ownerType: 'transaction', ownerId: payment.id };
+  const task = created.find((item) => item.type === 'task');
+  if (task) return { ownerType: 'task', ownerId: task.id };
+  if (inbox[0]?._id) return { ownerType: 'capture', ownerId: inbox[0]._id };
+  return null;
+}
+
 /** The toast after undo. Some things are deliberately left alone, and the person should know which. */
 export function undoMessage(kept = []) {
   if (!kept.length) return 'Undone';

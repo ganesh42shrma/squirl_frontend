@@ -11,9 +11,12 @@ import './media.css';
 const isTouchDevice = () => typeof window !== 'undefined' && (window.matchMedia?.('(pointer: coarse)').matches || (navigator.maxTouchPoints || 0) > 0);
 
 function Viewer({ attachments, index, readOnly, onIndex, onClose, onRemove, removing }) {
-  const [confirm, setConfirm] = useState(false);
+  // The confirmation belongs to one photo: after removing it the viewer shows the next one, which must ask again.
+  const [confirmId, setConfirmId] = useState(null);
   const current = attachments[index];
   if (!current) return null;
+  const confirm = confirmId === current.id;
+  const setConfirm = (on) => setConfirmId(on ? current.id : null);
   const label = `Photo ${index + 1} of ${attachments.length}`;
   const go = (next) => { setConfirm(false); onIndex(next); };
   return (

@@ -2,14 +2,18 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowRight, CalendarCheck, CheckSquare, Flame, HandCoins, Lightning, MagnifyingGlass, NotePencil, Receipt, Sparkle, Target, Tray, X,
+  Camera, ArrowRight, CalendarCheck, CheckSquare, Flame, HandCoins, Lightning, MagnifyingGlass, NotePencil, Receipt, Sparkle, Target, Tray, X,
 } from '@phosphor-icons/react';
 import { MODULES } from '../../app/modules';
 import { describeError } from '../../api/client';
 import { useToast } from '../../components/ui/Toast';
 import { useDebouncedValue } from '../../lib/hooks';
 import { todayISO } from '../../lib/format';
-import { navCommands, rankCommands, describeAction, describeResult, resultLink, savedMessage, canUndo, undoMessage, submissionFor, needsCategory, engineFor, EXAMPLES } from './paletteModel';
+import { navCommands, rankCommands, describeAction, describeResult, resultLink, savedMessage, canUndo, undoMessage, submissionFor, needsCategory, engineFor, photoTarget, EXAMPLES } from './paletteModel';
+import { useGuestMode } from '../../lib/useGuestMode';
+import { AttachmentsPanel } from '../media/AttachmentsPanel';
+import { DEFAULT_MAX_UPLOAD_BYTES, compressImage, validateImageFile } from '../media/imageTools';
+import { useMediaStatus, useUploadAttachment } from '../media/useMedia';
 import { useAiCategories, useAiPreview, useCaptureInbox, useCapturePreview, useCaptureSearch, useCommitCapture, useDismissCapture, useUndoCapture } from './useCapture';
 import './capture.css';
 
@@ -38,6 +42,44 @@ export function CommandPalette({ onClose, startIn = 'all' }) {
   const [inboxItem, setInboxItem] = useState(null); // an inbox note being re-read
   const [ai, setAi] = useState(null); // { text, actions, understood } from the AI engine
   const [error, setError] = useState('');
+  // One photo held on this device until the capture is saved, then attached to what it became.
+  const [photo, setPhoto] = useState(null); // { file, url }
+  const [attaching, setAttaching] = useState(false);
+  const photoRef = useRef(null);
+  const cameraRef = useRef(null);
+  const { guestMode } = useGuestMode();
+  const mediaStatus = useMediaStatus();
+  const uploader = useUploadAttachment();
+  const photosOn = mediaStatus.data?.configured === true && !guestMode;
+  useEffect(() => () => { if (photo) URL.revokeObjectURL(photo.url); }, [photo]);
+  const pickPhoto = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    const problem = validateImageFile(file);
+    if (problem) { setError(problem); return; }
+    setError('');
+    setPhoto({ file, url: URL.createObjectURL(file) });
+    inputRef.current?.focus();
+  };
+
+  /** After a save: shrink the held photo and attach it. Returns a message for the toast if it couldn't be. */
+  const attachPhoto = async (result) => {
+    if (!photo) return null;
+    const target = photoTarget(result);
+    if (!target) return 'Photos can’t go on a habit check-in, so it wasn’t attached.';
+    setAttaching(true);
+    try {
+      const blob = await compressImage(photo.file);
+      if (blob.size > (mediaStatus.data?.maxBytes || DEFAULT_MAX_UPLOAD_BYTES)) return 'Saved, but the photo is too big even after shrinking it.';
+      await uploader.upload(target.ownerType, target.ownerId, blob);
+      return null;
+    } catch (err) {
+      return `Saved, but the photo couldn’t be attached: ${err?.name === 'ImageError' ? err.message : describeError(err)}`;
+    } finally {
+      setAttaching(false);
+    }
+  };
   const submission = useRef(null); // { fingerprint, clientId } of the save in flight or last failed
   const debounced = useDebouncedValue(text.trim(), 180);
 
@@ -94,7 +136,7 @@ export function CommandPalette({ onClose, startIn = 'all' }) {
   }, [active]);
 
   const save = async () => {
-    if (!typed || commit.isPending) return;
+    if (!typed || commit.isPending || attaching) return;
     setError('');
     try {
       const body = {
@@ -107,8 +149,11 @@ export function CommandPalette({ onClose, startIn = 'all' }) {
       submission.current = submissionFor(submission.current, body);
       const result = await commit.mutateAsync({ ...body, clientId: submission.current.clientId });
       submission.current = null;
-      toast(savedMessage(result), canUndo(result) ? { action: { label: 'Undo', onClick: () => undoCapture(result.capture._id) }, duration: 6000 } : undefined);
-      setText(''); setAi(null); setInboxItem(null);
+      const photoProblem = await attachPhoto(result);
+      const withPhoto = photo && !photoProblem ? ' · photo attached' : '';
+      toast(`${savedMessage(result)}${withPhoto}`, canUndo(result) ? { action: { label: 'Undo', onClick: () => undoCapture(result.capture._id) }, duration: 6000 } : undefined);
+      if (photoProblem) toast(photoProblem, { tone: 'error' });
+      setText(''); setAi(null); setInboxItem(null); setPhoto(null);
       onClose();
     } catch (e) {
       // The server says this id belongs to different text: it can never succeed, so the next try starts fresh.
@@ -170,7 +215,7 @@ export function CommandPalette({ onClose, startIn = 'all' }) {
           <RowIcon kind={understood ? 'nav' : 'inbox'} />
           <span className="palette-row__body">
             <span className="palette-row__title">
-              {commit.isPending ? 'Saving…' : understood ? `Save${items.length > 1 ? ` ${items.length} items` : ''}` : inboxItem ? 'Keep in inbox' : 'Save to inbox'}
+              {commit.isPending ? 'Saving…' : attaching ? 'Attaching photo…' : understood ? `Save${items.length > 1 ? ` ${items.length} items` : ''}` : inboxItem ? 'Keep in inbox' : 'Save to inbox'}
               {useAiResult && <span className="palette-badge">AI</span>}
             </span>
             {row.pending && <span className="palette-row__detail">Reading…</span>}
@@ -259,13 +304,35 @@ export function CommandPalette({ onClose, startIn = 'all' }) {
             spellCheck="false"
             enterKeyHint="done"
           />
+          {photosOn && (
+            <>
+              <button type="button" className="palette__photo-btn" onClick={() => (window.matchMedia?.('(pointer: coarse)').matches ? cameraRef : photoRef).current?.click()} aria-label={photo ? 'Change the photo' : 'Add a photo'} title="Add a photo (receipt, bill…)">
+                <Camera size={18} aria-hidden="true" />
+              </button>
+              <input ref={photoRef} type="file" accept="image/*" hidden onChange={pickPhoto} aria-label="Choose a photo" />
+              <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={pickPhoto} aria-label="Take a photo" />
+            </>
+          )}
           <button type="button" className="palette__close" onClick={onClose} aria-label="Close"><X size={16} /></button>
         </div>
+        {photo && (
+          <div className="palette__photo">
+            <img src={photo.url} alt="Photo to attach" width={40} height={40} />
+            <span>{attaching ? 'Attaching photo…' : typed ? 'This photo will be attached when you save.' : 'Photo ready. Type what it was, like “lunch 450 upi”.'}</span>
+            <button type="button" onClick={() => setPhoto(null)} aria-label="Remove the photo" disabled={attaching}><X size={14} /></button>
+          </div>
+        )}
         {inboxItem && (
           <p className="palette__context">
             Sorting an inbox note. Edit it, then press Enter.
             <button type="button" onClick={() => { setInboxItem(null); setText(''); }}>Cancel</button>
           </p>
+        )}
+        {inboxItem && photosOn && (
+          <div className="palette__inbox-photos">
+            {/* Photos already on this note move with it to whatever it becomes when you save. */}
+            <AttachmentsPanel ownerType="capture" ownerId={inboxItem._id} />
+          </div>
         )}
         {error && <p className="palette__error" role="alert">{error}</p>}
         <ul className="palette__list" id="palette-list" role="listbox" aria-label="Suggestions" ref={listRef}>
