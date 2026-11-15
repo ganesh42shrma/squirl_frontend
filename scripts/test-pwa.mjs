@@ -18,8 +18,10 @@ const replies = [], messages = [];
 let networkDown = false;
 let replyStatus = 200;
 let windowOpen = false;
+let skipWaiting = 0;
 const self = {
   location: { origin: 'https://squirl.example.invalid' },
+  skipWaiting: async () => { skipWaiting++; },
   addEventListener: (event, fn) => { handlers[event] = fn; },
   registration: { showNotification: async (title, options) => { notices.push({ title, ...options }); } },
   clients: { claim: async () => {}, matchAll: async () => windowOpen ? [{ url: 'https://squirl.example.invalid/app', postMessage: (m) => messages.push(m), navigate: async (url) => opened.push(url), focus: async () => {} }] : [], openWindow: async (url) => { opened.push(url); } },
@@ -55,15 +57,44 @@ assert.equal(await event('fetch', { request: request('/api/users/me', 'cors', 'P
 networkDown = true;
 assert.equal(await event('fetch', { request: request('/app/tasks/today', 'navigate') }), 'cached:/offline.html');
 assert.equal(await event('fetch', { request: request('/icons/squirl-192.png') }), 'cached:/icons/squirl-192.png');
+cached.set(request('/assets/old-build.js'), 'old-client-asset');
+// Cache.match accepts Request objects; this fixture uses the same request instance.
+const oldAsset = [...cached.keys()].find((key) => typeof key === 'object');
+assert.equal(await event('fetch', { request: oldAsset }), 'old-client-asset');
+let capabilities;
+await event('message', { data: { type: 'PWA_STATUS' }, ports: [{ postMessage: (value) => { capabilities = value; } }] });
+assert.equal(capabilities.paymentNotes, true);
+await event('message', { data: { type: 'ACTIVATE_UPDATE' } });
+assert.equal(skipWaiting, 1);
 await event('push', { data: { json: () => ({ kind: 'bills', tag: 'bill-1', body: 'PRIVATE BANK DETAILS', url: 'https://evil.invalid' }) } });
-assert.equal(notices[0].title, 'Squirl'); assert(!notices[0].body.includes('PRIVATE'));
+assert.equal(notices[0].title, 'Payment reminder'); assert(!notices[0].body.includes('PRIVATE'));
 assert.equal(notices[0].data.url, '/app/finance/payments');
+assert.equal(notices[0].badge, '/icons/squirl-badge.png'); assert.equal(notices[0].icon, '/icons/squirl-192.png');
 await event('push', { data: { json: () => { throw new Error('malformed'); } } });
 assert.equal(notices.length, 2, 'malformed push still displays a generic notification');
+// Details: built only from typed fields, flattened and capped; raw title/body/url fields are ignored.
+await event('push', { data: { json: () => ({ kind: 'bills', title: 'EVIL', detail: { name: 'Electricity\nbill', amount: 1200, daysUntil: 1, count: 2 } }) } });
+assert.equal(notices.at(-1).title, 'Electricity bill due tomorrow');
+assert.equal(notices.at(-1).body, '₹1,200 · 1 more due');
+await event('push', { data: { json: () => ({ kind: 'tasks', detail: { count: 3, overdue: 1, first: 'Pay rent' } }) } });
+assert.deepEqual([notices.at(-1).title, notices.at(-1).body], ['3 quests waiting · 1 overdue', 'Pay rent and 2 more']);
+await event('push', { data: { json: () => ({ kind: 'habits', detail: { count: 2, names: ['Read', 'x'.repeat(200)] } }) } });
+assert(notices.at(-1).body.length < 70, 'long names are capped');
+await event('push', { data: { json: () => ({ kind: 'bills', detail: { name: 42, amount: 'lots' } }) } });
+assert.equal(notices.at(-1).title, 'Payment reminder', 'malformed detail falls back to the plain line');
+// Quick Capture inbox reminder: count and first note, capped; a tap opens the palette on the inbox.
+await event('push', { data: { json: () => ({ kind: 'captures', detail: { count: 3, first: 'Look into term\ninsurance ' + 'x'.repeat(100) } }) } });
+assert.equal(notices.at(-1).title, '3 notes to sort'); assert(notices.at(-1).body.endsWith(' and 2 more')); assert(!notices.at(-1).body.includes('\n'));
+assert.equal(notices.at(-1).data.url, '/app?capture=inbox');
+await event('push', { data: { json: () => ({ kind: 'captures' }) } });
+assert.equal(notices.at(-1).title, 'Your capture inbox', 'details off shows a generic line');
+notices.length = 2;
 await event('notificationclick', { notification: { close() {}, data: { url: 'https://evil.invalid' } } });
 assert.deepEqual(opened, ['https://squirl.example.invalid/app']);
 await event('notificationclick', { notification: { close() {}, data: { url: '/app/tasks/habits' } } });
 assert.equal(opened[1], 'https://squirl.example.invalid/app/tasks/habits');
+await event('notificationclick', { notification: { close() {}, data: { url: '/app?capture=inbox' } } });
+assert.equal(opened[2], 'https://squirl.example.invalid/app?capture=inbox');
 const id = 'a'.repeat(24);
 windowOpen = true; networkDown = false;
 await event('push', { data: { json: () => ({ kind: 'sms_payment', promptId: id, body: 'PRIVATE AMOUNT', url: 'https://evil.invalid' }) } });
@@ -72,6 +103,11 @@ assert.equal(payment.actions[0].type, 'text');
 assert.equal(payment.actions[0].action, 'add-note');
 assert.equal(payment.data.url, `/app/finance/ledger?payment=${id}`);
 assert(!payment.body.includes('PRIVATE'));
+assert.equal(payment.title, 'New payment');
+await event('push', { data: { json: () => ({ kind: 'sms_payment', promptId: id, detail: { amount: 450, type: 'debit', party: 'SWIGGY', at: '2026-11-15T10:00:00.000Z' } }) } });
+assert.deepEqual([notices.at(-1).title, notices.at(-1).body], ['₹450 spent', 'SWIGGY · What was it for?']);
+assert.equal(notices.at(-1).timestamp, Date.parse('2026-11-15T10:00:00.000Z'));
+assert.equal(notices.at(-1).renotify, true);
 assert.equal(messages.at(-1).type, 'squirl:payment-recorded');
 await event('notificationclick', { action: 'add-note', reply: '  Lunch  ', notification: { close() {}, data: payment.data } });
 assert.equal(replies.length, 1);

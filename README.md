@@ -21,9 +21,9 @@ In development, Vite proxies `/api` to `http://localhost:4000`, so there is no C
 
 ## Pages
 
-Profile → **Bank SMS** configures one owned account per bank, exact SMS sender IDs, device-token
-creation/revocation, and a paginated review queue. SBI presets are `VK-SBIUPI-S`, `AD-SBIUPI-S`;
-Kotak presets are `JM-KOTAKB-S`, `JD-KOTAKB-S`, `JX-KOTAKB-S`. Actual account suffixes are entered by
+Settings → **Bank SMS** configures one owned account per bank, SMS sender headers, device-token
+creation/revocation, and a paginated review queue. Presets are the headers `SBIUPI` and
+`KOTAKB`; any operator prefix/suffix (e.g. `AX-KOTAKB-S`) matches. Actual account suffixes are entered by
 the person and are never bundled into the application. Previously saved sender lists take priority.
 
 This needs the backend SMS endpoints and migration v20. Open the private HTTPS address to create
@@ -101,14 +101,26 @@ Data lives in React Query. Each feature's `use*.js` file holds its queries and m
 
 `npm run build` also generates the service worker. Run `npm run test:pwa` after building.
 The worker caches public interface files and provides a reconnect page; financial API responses
-are never cached and offline financial editing is not supported. Profile → This device controls
+are never cached and offline financial editing is not supported. Settings → Notifications controls
 notifications. The private desktop serves the build and `/api` from one HTTPS origin through
 Tailscale; see [the setup guide](../squirl_backend/deployment/MOBILE.md).
 
 New SMS ledger payments can send a generic **What was this for?** push with an **Add note** text
 reply on Chrome Android. Tapping the notification opens the same prompt in the ledger as a fallback.
 Replies append to payment notes, preserving bank narration and existing annotations. This requires
-backend migration v21 and an enabled push subscription; **Profile → This device → New SMS payments**
+backend migration v21 and an enabled push subscription; **Settings → Notifications → New SMS payments**
 controls it per device. The push hides names and amounts. Failed inline replies remain in the device
 notification for explicit retry; dismissing it loses the unsent draft. See the
 [payment push contract and deployment steps](../squirl_backend/deployment/SMS.md#new-payment-push-and-purpose-notes).
+
+Settings → Notifications reports whether the active service worker understands payment-note pushes.
+**Update app** checks for a new worker, waits for its installation, activates it on request, and
+reloads this window without removing the push subscription. Save any current Profile changes first.
+Other open windows retain access to their cached hashed assets until a later single-window update
+can clean up previous shell caches. The worker template is included in the build/cache fingerprint.
+Run `npm run test:pwa-updates` for the update-state checks.
+
+**Send reminder test** sends the generic test without a text box. **Test payment reply** resends a
+prompt for an existing unanswered SMS payment to this device, including one previously delivered
+to an old worker. Expand that notification and tap **Add note** to type. It does not create a ledger
+entry or require another payment. If there is no eligible unanswered payment, the server says so.

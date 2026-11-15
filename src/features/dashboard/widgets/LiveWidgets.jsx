@@ -6,6 +6,8 @@ import { scoopPath } from '../../../app/paths';
 import { useCoins, useNews, useRates, useWeather, weatherText } from '../../live/useLive';
 import '../../live/live.css';
 import { QueryState } from './FinanceWidgets';
+import { settingsPath } from '../../../app/paths';
+const DATA_SOURCES_PATH = settingsPath('data-sources');
 
 const inr = (n, digits = 2) => (n == null ? '—' : new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: digits }).format(n));
 const pct = (n) => (n == null ? '—' : `${n > 0 ? '+' : ''}${n.toFixed(2)}%`);
@@ -23,7 +25,7 @@ const LIVE = scoopPath('live');
 // ── Weather ─────────────────────────────────────────────────────────────────────────
 const MOCK_WEATHER = { location: { name: 'Bengaluru' }, data: { current: { temperature: 27, code: 2, feelsLike: 29 }, daily: [{ date: '2026-11-14', max: 29, min: 20 }, { date: '2026-11-15', max: 28, min: 20 }, { date: '2026-11-16', max: 30, min: 21 }] } };
 function WeatherView({ w }) {
-  if (!w?.data) return <p className="live-muted">Weather isn’t set up yet. Choose a city in <Link to="/app/profile#data-sources">Profile → Data sources</Link>.</p>;
+  if (!w?.data) return <p className="live-muted">Weather isn’t set up yet. Choose a city in <Link to={DATA_SOURCES_PATH}>Settings → Data sources</Link> to see headlines.</p>;
   return (
     <>
       <p className="live-big">{Math.round(w.data.current.temperature)}°C</p>
@@ -79,7 +81,7 @@ export const CryptoPreview = ({ settings }) => <section className="dash-section"
 // ── News ────────────────────────────────────────────────────────────────────────────
 const MOCK_NEWS = [{ id: '1', title: 'RBI keeps repo rate unchanged', section: 'Business', url: '#' }, { id: '2', title: 'Fuel prices steady ahead of festive season', section: 'Economy', url: '#' }, { id: '3', title: 'UPI volumes hit a new monthly record', section: 'Technology', url: '#' }];
 function NewsView({ items, needsSetup }) {
-  if (needsSetup) return <p className="live-muted">Headlines come from The Guardian’s free API. Add your key in <Link to="/app/profile#data-sources">Profile → Data sources</Link>.</p>;
+  if (needsSetup) return <p className="live-muted">Add a free Guardian key in <Link to={DATA_SOURCES_PATH}>Settings → Data sources</Link> to see headlines.</p>;
   if (!items.length) return <p className="live-muted">No articles for this topic.</p>;
   return (
     <ul className="live-news">

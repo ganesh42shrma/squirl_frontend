@@ -13,7 +13,7 @@ export function ResetFinancialData() {
     <section className="profile-section" aria-labelledby="reset-title">
       <div className="profile-section__head">
         <h2 id="reset-title">Reset financial data</h2>
-        <p>Start fresh. Keep your profile and family & friends.</p>
+        <p>Clears your finances. Profile and people stay.</p>
       </div>
       <div>
         <Button variant="quiet" onClick={() => { reset.reset(); setOpen(true); }}>Reset financial data</Button>
@@ -28,8 +28,7 @@ export function ResetFinancialData() {
         </>
       }>
         <div className="profile-form">
-          <p>Reset transactions, imports, balances, reports, EMIs and subscriptions. Custom categories, tags and learned rules return to defaults.</p>
-          <p>Your profile and family &amp; friends stay. All reset records remain archived in the database.</p>
+          <p>Clears transactions, imports, EMIs and bills. Categories, tags and rules go back to defaults. Your profile and people stay.</p>
           {reset.isError && <p className="import-error">{describeError(reset.error)}</p>}
         </div>
       </Dialog>}

@@ -1,0 +1,229 @@
+/* Settings: a grouped menu beside the page on desktop; on a phone the menu is the first screen and
+   each item opens its own page with a back link. Sections reuse the .profile-section styles. */
+.settings {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 64px);
+  align-items: start;
+}
+
+.settings__rail {
+  position: sticky;
+  top: 24px;
+  display: grid;
+  gap: 20px;
+}
+
+.settings__heading {
+  font-size: var(--text-2xl);
+}
+
+.settings__content {
+  display: grid;
+  gap: 28px;
+  min-width: 0;
+  max-width: 760px;
+}
+
+.settings__title {
+  font-size: var(--text-2xl);
+}
+
+/* One-section pages: the page title already names it. */
+.settings__content > .profile-section:first-of-type {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.settings__content--single .profile-section__head h2 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* The roomy two-column section layout needs more width than the content pane has on smaller desktops. */
+@media (max-width: 1180px) {
+  .settings .profile-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Menu */
+.settings-nav {
+  display: grid;
+  gap: 20px;
+}
+
+.settings-nav__group {
+  display: grid;
+  gap: 6px;
+}
+
+.settings-nav__heading {
+  padding-inline: 10px;
+  color: var(--ink-faint);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.settings-nav__list {
+  display: grid;
+  gap: 2px;
+}
+
+.settings-nav__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  text-decoration: none;
+}
+
+.settings-nav__item:hover {
+  background: var(--stone);
+  color: var(--ink);
+}
+
+.settings-nav__item[aria-current='page'] {
+  background: var(--stone);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.settings-nav__item:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.settings-nav__item.is-danger .settings-nav__icon {
+  color: var(--clay-ink);
+}
+
+.settings-nav__icon {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+}
+
+.settings-nav__text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-nav__end {
+  flex: none;
+  color: var(--ink-faint);
+}
+
+/* Phone: grouped cards with blurbs, 56px rows. */
+.settings--mobile {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+
+.settings-nav--rich {
+  gap: 24px;
+}
+
+.settings-nav--rich .settings-nav__list {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+.settings-nav--rich .settings-nav__item {
+  gap: 14px;
+  min-height: 60px;
+  padding: 10px 14px;
+  border-radius: 0;
+  color: var(--ink);
+  font-size: var(--text-base);
+}
+
+.settings-nav--rich .settings-nav__item + .settings-nav__item {
+  border-top: 1px solid var(--line);
+}
+
+.settings-nav--rich .settings-nav__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--stone);
+}
+
+.settings-nav__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-nav__blurb {
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.settings-card__text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-card__text strong {
+  font-size: var(--text-lg);
+}
+
+.settings-card__text span {
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: start;
+  min-height: 44px;
+  margin: -10px 0 -12px -6px;
+  padding-right: 10px;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  text-decoration: none;
+}
+
+.settings--mobile .settings__content {
+  max-width: none;
+}
+
+.settings--mobile .settings__title {
+  font-size: var(--text-xl);
+}

@@ -13,7 +13,9 @@
     "test:guest-mode": "node scripts/test-guest-mode.mjs",
     "test:ledger-filters": "node scripts/test-ledger-filters.mjs",
     "test:tasks-ui": "node scripts/test-tasks-ui.mjs",
+    "test:capture-ui": "node scripts/test-capture-ui.mjs",
     "test:pwa": "node scripts/test-pwa.mjs",
+    "test:pwa-updates": "node scripts/test-pwa-updates.mjs",
     "test:payment-refresh": "node scripts/test-payment-refresh.mjs",
     "test:quotes": "node scripts/test-quotes.mjs",
     "test:sms-ui": "node scripts/test-sms-ui.mjs"

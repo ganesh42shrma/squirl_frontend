@@ -2,7 +2,7 @@ import { isGuestMode } from '../../lib/guestMode';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowDown, ArrowUp } from '@phosphor-icons/react';
+import { ArrowDown, ArrowUp, Plus } from '@phosphor-icons/react';
 import { MonthSwitcher } from '../../components/ui/MonthSwitcher';
 import { EmptyJar } from '../../components/illustrations/Sketches';
 import { currentMonthKey, formatMoney } from '../../lib/format';
@@ -18,7 +18,12 @@ import { paginationInfo, rememberPageSize, rememberedPageSize } from './ledgerPa
 import { activeFilterCount, clearedFilters, parseFilters, rangeFor, toParams, toQuery, toSummaryQuery } from './ledgerFilters';
 import { AddMemberDialog } from '../profile/AddMemberDialog';
 import { PaymentNotePrompt } from './PaymentNotePrompt';
+import { MobileLedgerList } from './MobileLedgerList';
+import { TransactionSheet } from './TransactionSheet';
+import { AddTransactionSheet } from './AddTransactionSheet';
+import { useIsMobile } from '../../hooks/useMedia';
 import './ledger.css';
+import './ledgerMobile.css';
 
 const NEXT_SORT = { '-date': 'date', date: '-date', '-amount': 'amount', amount: '-amount' };
 const money = (n) => formatMoney(Math.round(n), { rounded: true });
@@ -77,6 +82,9 @@ export function LedgerPage() {
   const [selected, setSelected] = useState(() => new Set());
   const [newId, setNewId] = useState(null);
   const [memberTransaction, setMemberTransaction] = useState(null);
+  const isMobile = useIsMobile();
+  const [editingTx, setEditingTx] = useState(null);
+  const [adding, setAdding] = useState(false);
   const tableTop = useRef(null);
 
   const query = useMemo(() => toQuery(filters, currentMonth, limit), [filters, currentMonth, limit]);
@@ -148,9 +156,21 @@ export function LedgerPage() {
 
       <LedgerFilters filters={filters} onChange={update} onClear={clearFilters} resultText={filtered ? resultText : ''} />
 
-      <div className="ledger-table-scroll" ref={tableTop}>
-        <div className={`ledger-table${isFetching && !isLoading ? ' is-refreshing' : ''}`} role="table" aria-label="Transactions" aria-busy={isFetching}>
-          <div className="ledger-row ledger-row--head" role="row">
+      {isMobile && (
+        <label className="ledger-sort-select">
+          <span>Sort</span>
+          <select value={filters.sort} onChange={(e) => update({ sort: e.target.value })}>
+            <option value="-date">Newest first</option>
+            <option value="date">Oldest first</option>
+            <option value="-amount">Largest first</option>
+            <option value="amount">Smallest first</option>
+          </select>
+        </label>
+      )}
+
+      <div className={`ledger-table-scroll${isMobile ? ' ledger-table-scroll--mobile' : ''}`} ref={tableTop}>
+        <div className={`ledger-table${isMobile ? ' ledger-table--mobile' : ''}${isFetching && !isLoading ? ' is-refreshing' : ''}`} role={isMobile ? undefined : 'table'} aria-label="Transactions" aria-busy={isFetching}>
+          {!isMobile && <div className="ledger-row ledger-row--head" role="row">
             <div className="ledger-cell ledger-cell--check" role="columnheader">
               <input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label="Select all rows on this page" disabled={!rows.length || isFetching} />
             </div>
@@ -163,9 +183,9 @@ export function LedgerPage() {
             <div className="ledger-cell ledger-cell--amount" role="columnheader">
               <SortButton field="amount" sort={filters.sort} onSort={(sort) => update({ sort })}>Amount</SortButton>
             </div>
-          </div>
+          </div>}
 
-          {filters.preset === 'month' && !filtered && !isGuestMode() && <AddRow onAdded={(created) => { changePage(1); setNewId(created._id); }} />}
+          {!isMobile && filters.preset === 'month' && !filtered && !isGuestMode() && <AddRow onAdded={(created) => { changePage(1); setNewId(created._id); }} />}
 
           {changingPage &&
             Array.from({ length: 6 }, (_, i) => (
@@ -204,15 +224,25 @@ export function LedgerPage() {
             </div>
           )}
 
-          {rows.map((tx) => (
-            <LedgerRow key={tx._id} tx={tx} selected={selected.has(tx._id)} onToggle={toggle} isNew={tx._id === newId} onAddMember={setMemberTransaction} />
-          ))}
+          {isMobile
+            ? rows.length > 0 && <MobileLedgerList rows={rows} newId={newId} onOpen={setEditingTx} />
+            : rows.map((tx) => (
+              <LedgerRow key={tx._id} tx={tx} selected={selected.has(tx._id)} onToggle={toggle} isNew={tx._id === newId} onAddMember={setMemberTransaction} />
+            ))}
         </div>
 
       </div>
       <LedgerPagination page={page} limit={limit} total={total} loading={isFetching || changingPage} onPage={changePage} onLimit={changeLimit} />
 
-      <BulkBar ids={[...selected]} onClear={() => setSelected(new Set())} />
+      {!isMobile && <BulkBar ids={[...selected]} onClear={() => setSelected(new Set())} />}
+      {isMobile && !isGuestMode() && (
+        <button type="button" className="ledger-fab" onClick={() => setAdding(true)}>
+          <Plus size={20} weight="bold" aria-hidden="true" />
+          Add
+        </button>
+      )}
+      {isMobile && adding && <AddTransactionSheet onClose={() => setAdding(false)} onAdded={(created) => { changePage(1); setNewId(created._id); }} />}
+      {isMobile && editingTx && <TransactionSheet tx={editingTx} onClose={() => setEditingTx(null)} />}
       {memberTransaction && <AddMemberDialog transaction={memberTransaction} onClose={() => setMemberTransaction(null)} />}
     </div>
   );

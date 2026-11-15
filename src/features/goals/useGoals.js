@@ -47,7 +47,7 @@ export function usePlanPreview(body) {
   });
 }
 
-/** Which engine writes Squirl's words (Profile → AI): decides whether setup autofills as you type. */
+/** Which engine writes Squirl's words (Settings → AI): decides whether setup autofills as you type. */
 export function useAiSettings() {
   return useQuery({ queryKey: ['ai', 'settings'], queryFn: () => api('/ai/settings').then((r) => r.data), staleTime: 60_000 });
 }

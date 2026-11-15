@@ -6,6 +6,8 @@ import { describeError } from '../../api/client';
 import { formatDate } from '../../lib/format';
 import { useDebouncedValue } from '../../lib/hooks';
 import { useCricket, useSetWatch, useTitleSearch, useTitles, useWatchlist } from './useLive';
+import { settingsPath } from '../../app/paths';
+const DATA_SOURCES_PATH = settingsPath('data-sources');
 
 const TABS = [
   { key: 'movies', label: 'Movies' },
@@ -15,7 +17,7 @@ const TABS = [
 ];
 const MINE_FILTERS = { all: 'Everything', starred: 'Starred', must_watch: 'Must watch', watch_later: 'Watch later' };
 
-const settingsLink = <Link to="/app/profile#data-sources">Profile → Data sources</Link>;
+const settingsLink = <Link to={DATA_SOURCES_PATH}>Settings → Data sources</Link>;
 
 /** One poster with its details and the three watchlist actions. */
 function TitleCard({ title }) {
@@ -68,7 +70,7 @@ function PopularList({ list }) {
   const q = useTitles(list);
   if (q.isLoading) return <p className="live-muted">Loading…</p>;
   if (q.isError) return <p className="import-error">{describeError(q.error)}</p>;
-  if (q.data?.needsSetup) return <p className="live-muted">Add your free TMDB API key in {settingsLink} to see what’s popular.</p>;
+  if (q.data?.needsSetup) return <p className="live-muted">Add a free TMDB key in {settingsLink} to see what’s popular.</p>;
   return (
     <>
       <ul className="ent-grid">
@@ -83,7 +85,7 @@ function SearchResults({ term }) {
   const q = useTitleSearch(term);
   if (q.isLoading) return <p className="live-muted">Searching…</p>;
   if (q.isError) return <p className="import-error">{describeError(q.error)}</p>;
-  if (q.data?.needsSetup) return <p className="live-muted">Add your free TMDB API key in {settingsLink} to search.</p>;
+  if (q.data?.needsSetup) return <p className="live-muted">Add a free TMDB key in {settingsLink} to search.</p>;
   const results = q.data?.data || [];
   return results.length ? (
     <ul className="ent-grid">
@@ -132,7 +134,7 @@ function CricketCard() {
       ) : q.isError ? (
         <p className="import-error">{describeError(q.error)}</p>
       ) : c?.needsSetup ? (
-        <p className="live-muted">Add your free CricketData.org API key in {settingsLink} for live scores.</p>
+        <p className="live-muted">Add a free CricketData key in {settingsLink} for live scores.</p>
       ) : (
         <ul className="ent-matches">
           {(c?.data?.matches || []).map((m) => {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Dialog } from '../../components/ui/Dialog';
 import { useToast } from '../../components/ui/Toast';
@@ -10,14 +10,6 @@ import { useChangePassword, useDeleteAccount, useLogout, useProfile, useUpdatePr
 import '../../components/layout/layout.css';
 import '../auth/auth.css';
 import './profile.css';
-import { FamilyContacts } from './FamilyContacts';
-import { ResetFinancialData } from './ResetFinancialData';
-import { AiSettings } from './AiSettings';
-import { DataSources } from './DataSources';
-import { DeviceNotifications } from './DeviceNotifications';
-import { BankSms } from './BankSms';
-import '../commitments/commitments.css';
-import { CUSTOMIZE_DASHBOARD_PATH } from '../../app/paths';
 
 function Details({ profile }) {
   const update = useUpdateProfile();
@@ -38,7 +30,6 @@ function Details({ profile }) {
     <section className="profile-section" aria-labelledby="details-title">
       <div className="profile-section__head">
         <h2 id="details-title">Your details</h2>
-        <p>Your name appears on the dashboard. Your email is how you sign in.</p>
       </div>
       <form className="profile-form" onSubmit={submit}>
         <label className="field">
@@ -93,7 +84,7 @@ function ChangePassword() {
         onSuccess: () => {
           setOpen(false);
           setForm(empty);
-          toast('Password changed. Other devices have been signed out.');
+          toast('Password changed');
         },
       },
     );
@@ -103,7 +94,7 @@ function ChangePassword() {
     <section className="profile-section" aria-labelledby="password-title">
       <div className="profile-section__head">
         <h2 id="password-title">Password</h2>
-        <p>Changing it signs out every other device. This one stays signed in.</p>
+        <p>Signs you out on other devices.</p>
       </div>
       <div>
         <Button variant="quiet" onClick={openDialog}>Change password</Button>
@@ -148,10 +139,7 @@ function DangerZone({ profile }) {
     <section className="profile-section profile-section--danger" aria-labelledby="delete-title">
       <div className="profile-section__head">
         <h2 id="delete-title">Delete account</h2>
-        <p>
-          Permanently deletes this account and everything in it: {profile.stats.transactions} transactions, {profile.stats.imports} imports, your
-          categories, tags and learned merchants. Other accounts on this computer aren’t affected. This can’t be undone.
-        </p>
+        <p>Deletes your account and all its data. This can’t be undone.</p>
       </div>
       {!open ? (
         <div>
@@ -187,6 +175,7 @@ function DangerZone({ profile }) {
   );
 }
 
+// Settings → Profile: who you are, how you sign in, and leaving. Everything else has its own settings page.
 export function ProfilePage() {
   const { data: profile, isLoading, isError, error } = useProfile();
   const logout = useLogout();
@@ -209,7 +198,7 @@ export function ProfilePage() {
           {initials}
         </span>
         <div>
-          <h1>{profile.name}</h1>
+          <h2>{profile.name}</h2>
           <p>
             {profile.email} · member since {formatDate(profile.createdAt)}
           </p>
@@ -235,17 +224,7 @@ export function ProfilePage() {
       </dl>
 
       <Details profile={profile} />
-      <DeviceNotifications />
-      <BankSms />
-      <section className="profile-section" aria-labelledby="dashboard-title">
-        <div className="profile-section__head"><h2 id="dashboard-title">Dashboard</h2><p>Choose widgets and data.</p></div>
-        <div><Link className="btn btn--quiet" to={CUSTOMIZE_DASHBOARD_PATH}>Configure dashboard</Link></div>
-      </section>
-      <FamilyContacts profile={profile} />
       <ChangePassword />
-      <AiSettings />
-      <DataSources />
-      <ResetFinancialData />
       <DangerZone profile={profile} />
     </div>
   );

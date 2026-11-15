@@ -21,14 +21,14 @@ function CloudOptions({ settings }) {
         <input type="checkbox" checked={settings.webSearch} disabled={update.isPending} onChange={toggle('webSearch', 'Web search')} />
         <span>
           Search the web
-          <span className="cm-optional">Looks up live prices when you set up a goal. Each lookup is a paid search on your key.</span>
+          <span className="cm-optional">For live prices in goals. May cost extra.</span>
         </span>
       </label>
       <label className="goal-check">
         <input type="checkbox" checked={settings.strict} disabled={update.isPending} onChange={toggle('strict', 'Strict answers')} />
         <span>
-          Strict structured answers
-          <span className="cm-optional">The model must answer in Squirl’s exact format, so goal settings can be filled in reliably.</span>
+          Strict answers
+          <span className="cm-optional">More reliable goal setup.</span>
         </span>
       </label>
       <label className="goal-check">
@@ -36,14 +36,12 @@ function CloudOptions({ settings }) {
           type="checkbox"
           checked={settings.guard.enabled}
           disabled={update.isPending || (!settings.guard.enabled && !settings.keys.groq.saved)}
-          onChange={(e) => update.mutate({ guard: { enabled: e.target.checked } }, { onSuccess: (s) => toast(`Prompt guard ${s.guard.enabled ? 'on' : 'off'}`) })}
+          onChange={(e) => update.mutate({ guard: { enabled: e.target.checked } }, { onSuccess: (s) => toast(`Safety check ${s.guard.enabled ? 'on' : 'off'}`) })}
         />
         <span>
-          Prompt guard (Groq)
+          Safety check
           <span className="cm-optional">
-            {settings.keys.groq.saved
-              ? 'Before each cloud request, Groq’s Llama Prompt Guard checks goal names, notes and transaction descriptions for attempts to manipulate the AI. Blocked text is never sent.'
-              : 'Save a Groq API key (choose Groq above) to turn this on. It checks what Squirl sends to any cloud model.'}
+            {settings.keys.groq.saved ? 'Blocks suspicious text before it’s sent.' : 'Needs a Groq key.'}
           </span>
         </span>
       </label>
@@ -110,13 +108,13 @@ function ProviderKey({ provider, settings }) {
     <div className="ai-provider">
       {saved.saved && !replacing ? (
         <p className="ai-key">
-          Key saved, ending in <code>{saved.last4}</code>
+          Key saved (…{saved.last4})
           <button type="button" className="link-button" onClick={() => setReplacing(true)}>Replace</button>
           <button
             type="button"
             className="link-button"
             disabled={inUse || update.isPending}
-            title={inUse ? 'Switch back to the local model before removing the key in use' : undefined}
+            title={inUse ? 'Switch to this computer first' : undefined}
             onClick={() => update.mutate({ keys: { [provider]: null } }, { onSuccess: () => toast('Key removed') })}
           >
             Remove
@@ -125,7 +123,7 @@ function ProviderKey({ provider, settings }) {
       ) : (
         <form className="ai-key-form" onSubmit={saveKey}>
           <label className="field">
-            {PROVIDERS[provider]} API key
+            {PROVIDERS[provider]} key
             <input
               className="input"
               type="password"
@@ -137,7 +135,7 @@ function ProviderKey({ provider, settings }) {
               required
               minLength={10}
             />
-            <span className="cm-optional">Create one at {KEY_PAGES[provider]}. Usage is billed to your account there.</span>
+            <span className="cm-optional">Get one at {KEY_PAGES[provider]}</span>
           </label>
           <div className="profile-form__actions">
             <Button type="submit" variant="quiet" disabled={update.isPending || key.trim().length < 10}>{update.isPending ? 'Saving…' : 'Save key'}</Button>
@@ -162,18 +160,18 @@ function ProviderKey({ provider, settings }) {
             {models.isError && <span className="import-error">{describeError(models.error)}</span>}
           </label>
           <Button variant="quiet" disabled={test.isPending || !current} onClick={() => test.mutate()}>
-            {test.isPending ? 'Testing… (up to a minute)' : 'Test connection'}
+            {test.isPending ? 'Testing…' : 'Test connection'}
           </Button>
         </div>
       )}
-      {test.isSuccess && <p className="cm-hint">Connected to {test.data.model} in {(test.data.ms / 1000).toFixed(1)} s.</p>}
+      {test.isSuccess && <p className="cm-hint">Working.</p>}
       {test.isError && <p className="import-error">{describeError(test.error)}</p>}
       {update.isError && <p className="import-error">{describeError(update.error)}</p>}
     </div>
   );
 }
 
-/** Profile → AI: local model (default, nothing leaves this computer) or a cloud API with your own key. */
+/** Settings → AI: local model (default, nothing leaves this computer) or a cloud API with your own key. */
 export function AiSettings() {
   const { data: settings, isLoading } = useAiSettings();
   const update = useUpdateAi();
@@ -191,12 +189,12 @@ export function AiSettings() {
     <section className="profile-section" aria-labelledby="ai-title">
       <div className="profile-section__head">
         <h2 id="ai-title">AI model</h2>
-        <p>Writes your highlights, suggests categories and checks your goals. Every number is still worked out by Squirl.</p>
+        <p>Powers highlights, categories and goals.</p>
       </div>
       <div className="profile-form ai-settings">
         <fieldset className="cm-kinds">
           <legend className="visually-hidden">Which model</legend>
-          {[['local', 'Local model'], ['api', 'Cloud API']].map(([value, label]) => (
+          {[['local', 'On this computer'], ['api', 'Online']].map(([value, label]) => (
             <label key={value} className={`cm-kind${shown === value ? ' is-active' : ''}`}>
               <input type="radio" name="ai-mode" value={value} checked={shown === value} onChange={() => setView(value)} />
               {label}
@@ -207,12 +205,12 @@ export function AiSettings() {
         {shown === 'local' ? (
           <>
             <p className="cm-hint">
-              Runs on this computer ({settings.local.model}). Nothing leaves it. Start it with <code>npm run llm</code> in the backend.
+              Private. Nothing leaves your computer.
             </p>
             {settings.mode === 'api' && (
               <div className="profile-form__actions">
-                <Button disabled={update.isPending} onClick={() => update.mutate({ mode: 'local' }, { onSuccess: () => (setView(null), toast('Using the local model')) })}>
-                  Switch to the local model
+                <Button disabled={update.isPending} onClick={() => update.mutate({ mode: 'local' }, { onSuccess: () => (setView(null), toast('Using this computer')) })}>
+                  Use this computer
                 </Button>
               </div>
             )}
@@ -230,10 +228,9 @@ export function AiSettings() {
             </fieldset>
             <ProviderKey key={chosen} provider={chosen} settings={settings} />
             <CloudOptions settings={settings} />
-            {chosen === 'groq' && <p className="cm-optional">On Groq, the groq/compound and openai/gpt-oss models can search the web for live prices; other Groq models can’t.</p>}
             <div className="profile-form__actions">
               {usingChosen ? (
-                <p className="cm-hint">In use now: {settings.models[chosen]}.</p>
+                <p className="cm-hint">In use.</p>
               ) : (
                 <Button
                   disabled={!ready || update.isPending}
