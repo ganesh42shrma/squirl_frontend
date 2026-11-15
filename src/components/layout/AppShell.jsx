@@ -6,11 +6,14 @@ import { GuestModeToggle } from './GuestModeToggle';
 import { ModuleLauncher } from './ModuleLauncher';
 import { useGuestMode } from '../../lib/useGuestMode';
 import { BackgroundNotices } from './BackgroundNotices';
+import { MobileTabBar } from './MobileTabBar';
+import { useIsMobile } from '../../hooks/useMedia';
 import { QuoteFooter } from './QuoteFooter';
 import { SystemToasts } from '../../features/tasks/SystemToasts';
 import { useLogout, useMe } from '../../features/auth/useAuth';
-import { DASHBOARD_PATH, PROFILE_PATH, tabForPath } from '../../app/modules';
+import { DASHBOARD_PATH, PROFILE_PATH, SETTINGS_PATH, tabForPath } from '../../app/modules';
 import './layout.css';
+import './mobile.css';
 import '../../features/profile/profile.css';
 
 const initialsOf = (name = '') =>
@@ -22,7 +25,7 @@ const initialsOf = (name = '') =>
     .join('')
     .toUpperCase();
 
-// Who's signed in, with Profile and Sign out. A native <details> keeps it keyboard-friendly.
+// Who's signed in, with Profile, Settings and Sign out. A native <details> keeps it keyboard-friendly.
 function AccountMenu() {
   const { data: me } = useMe();
   const logout = useLogout();
@@ -51,6 +54,9 @@ function AccountMenu() {
         </p>
         <Link to={PROFILE_PATH} className="account-menu__item">
           Profile
+        </Link>
+        <Link to={SETTINGS_PATH} className="account-menu__item">
+          Settings
         </Link>
         <button
           type="button"
@@ -90,20 +96,31 @@ export function AppShell() {
   const { guestMode } = useGuestMode();
   const { pathname } = useLocation();
   const { module } = tabForPath(pathname);
+  const isMobile = useIsMobile();
+  // Lets fixed elements outside the shell (toasts) clear the tab bar.
+  useEffect(() => {
+    if (!isMobile) return undefined;
+    document.documentElement.dataset.mobileShell = '';
+    return () => { delete document.documentElement.dataset.mobileShell; };
+  }, [isMobile]);
   return (
-    <div className="shell">
+    <div className={`shell${isMobile ? ' shell--mobile' : ''}`}>
       <header className="shell__header">
         <div className="shell__bar">
           <Logo to={DASHBOARD_PATH} />
-          <nav className="shell__nav" aria-label="Main">
-            <NavLink to={DASHBOARD_PATH} end className="shell__link shell__link--dash">
-              Dashboard
-            </NavLink>
-            <ModuleLauncher module={module} />
-          </nav>
+          {isMobile ? (
+            <span className="shell__title">{module?.label || (pathname.startsWith(SETTINGS_PATH) ? 'Settings' : 'Home')}</span>
+          ) : (
+            <nav className="shell__nav" aria-label="Main">
+              <NavLink to={DASHBOARD_PATH} end className="shell__link shell__link--dash">
+                Dashboard
+              </NavLink>
+              <ModuleLauncher module={module} />
+            </nav>
+          )}
           <GuestModeToggle />
           <ThemeToggle />
-          <AccountMenu />
+          {!isMobile && <AccountMenu />}
         </div>
         {module && module.tabs.length > 1 && <SubTabs module={module} />}
       </header>
@@ -112,9 +129,10 @@ export function AppShell() {
       <main className="shell__main" key={guestMode ? 'guest' : 'private'}>
         <Outlet />
       </main>
-      <QuoteFooter />
+      {!isMobile && <QuoteFooter />}
       <BackgroundNotices />
       <SystemToasts />
+      {isMobile && <MobileTabBar />}
     </div>
   );
 }

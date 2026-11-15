@@ -6,7 +6,7 @@ import { LoginPage } from './features/auth/LoginPage';
 import { SignupPage } from './features/auth/SignupPage';
 import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from './features/auth/ResetPasswordPage';
-import { ProfilePage } from './features/profile/ProfilePage';
+import { SettingsPage, LegacyProfileRedirect } from './features/settings/SettingsPage';
 import { LEGACY_REDIRECTS, MODULES } from './app/modules';
 import { LegacyRedirect } from './app/LegacyRedirect';
 
@@ -34,7 +34,9 @@ export default function App() {
         }
       >
         <Route index element={withSuspense(<DashboardPage />)} />
-        <Route path="profile" element={<ProfilePage />} />
+        <Route path="settings/:section?" element={<SettingsPage />} />
+        {/* The old single Profile page; #data-sources links land on their own settings page. */}
+        <Route path="profile" element={<LegacyProfileRedirect />} />
         {/* Every module's pages come from the registry in app/modules.js. */}
         {MODULES.map((module) => (
           <Route key={module.id} path={module.id}>

@@ -1,9 +1,9 @@
 // The single source of truth for navigation. The header launcher, the sub-tab row, the routes and
 // the dashboard's widget groups all read this list, so adding a module (or a page inside one) is
-// one edit here. Dashboard and Profile stay top-level; everything else lives inside a module.
+// one edit here. Dashboard and Settings stay top-level; everything else lives inside a module.
 import { lazy } from 'react';
-import { Newspaper, Wallet, Sword } from '@phosphor-icons/react';
-import { APP, financePath, tasksPath, scoopPath, PROFILE_PATH, goalPath, CUSTOMIZE_DASHBOARD_PATH } from './paths';
+import { GearSix, House, Newspaper, Wallet, Sword } from '@phosphor-icons/react';
+import { APP, financePath, tasksPath, scoopPath, SETTINGS_PATH, settingsPath, goalPath, CUSTOMIZE_DASHBOARD_PATH } from './paths';
 
 export * from './paths';
 
@@ -75,15 +75,23 @@ export const MODULES = [
   {
     id: 'scoop',
     label: 'Daily Scoop',
+    shortLabel: 'Scoop',
     base: `${APP}/scoop`,
     icon: Newspaper,
     blurb: 'Weather, markets, news and more',
-    quick: [{ label: 'Data sources', to: `${PROFILE_PATH}#data-sources` }],
+    quick: [{ label: 'Data sources', to: settingsPath('data-sources') }],
     tabs: [{ path: 'live', label: 'Live', page: LivePage }],
   },
 ];
 
-// The dashboard is top-level. Profile lives in the account menu, not the module menu.
+// Mobile tab bar: the dashboard, every module (shortLabel if set) and Settings. Built from MODULES, so a new module appears automatically.
+export const mobileTabs = () => [
+  { id: 'dashboard', label: 'Home', to: APP, end: true, icon: House },
+  ...MODULES.map((m) => ({ id: m.id, label: m.shortLabel || m.label, to: `${m.base}/${m.tabs[0].path}`, base: m.base, icon: m.icon })),
+  { id: 'settings', label: 'Settings', to: SETTINGS_PATH, icon: GearSix },
+];
+
+// The dashboard is top-level. Settings lives in the account menu, not the module menu.
 export const TOP_LEVEL = [{ id: 'dashboard', label: 'Dashboard', to: APP, blurb: 'Your board of widgets' }];
 
 export const moduleById = (id) => MODULES.find((m) => m.id === id);

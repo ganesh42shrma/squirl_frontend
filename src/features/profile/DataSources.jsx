@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import { ArrowSquareOut } from '@phosphor-icons/react';
 import { Button } from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
@@ -8,15 +7,15 @@ import { useDebouncedValue } from '../../lib/hooks';
 import { useFeedSearch, useLiveSettings, useSaveLiveSettings } from '../live/useLive';
 
 const SOURCES = [
-  { key: 'weather', name: 'Weather and air quality', by: 'Open-Meteo', url: 'https://open-meteo.com/', note: 'Free, no key. Sends only your city’s coordinates.' },
-  { key: 'rates', name: 'Exchange rates', by: 'European Central Bank via Frankfurter', url: 'https://frankfurter.dev/', note: 'Free, no key. Updated each working day.' },
-  { key: 'inflation', name: 'Inflation in India', by: 'MoSPI (official CPI) and World Bank', url: 'https://esankhyiki.mospi.gov.in/', note: 'Free, no key. Also powers the official rate hint in the goal form.' },
-  { key: 'funds', name: 'Mutual fund NAVs', by: 'AMFI data via mfapi.in', url: 'https://www.mfapi.in/', note: 'Free, no key. Sends only the scheme codes you follow.' },
-  { key: 'stocks', name: 'Stock prices', by: 'Marketstack', url: 'https://marketstack.com/', note: 'Your key. End-of-day prices; the free plan allows 100 requests a month.' },
-  { key: 'crypto', name: 'Crypto prices', by: 'CoinGecko', url: 'https://www.coingecko.com/', note: 'Free. A demo key raises the limits.' },
-  { key: 'news', name: 'News', by: 'The Guardian', url: 'https://open-platform.theguardian.com/access/', note: 'Free with your own key.' },
-  { key: 'movies', name: 'Movies, shows and anime', by: 'TMDB', url: 'https://www.themoviedb.org/settings/api', note: 'Free with your own key, for personal use.' },
-  { key: 'cricket', name: 'Cricket scores', by: 'CricketData.org', url: 'https://cricketdata.org/', note: 'Free with your own key: 100 calls a day, so scores refresh every 15 minutes.' },
+  { key: 'weather', name: 'Weather and air quality', by: 'Open-Meteo', url: 'https://open-meteo.com/', note: 'No key needed' },
+  { key: 'rates', name: 'Exchange rates', by: 'European Central Bank via Frankfurter', url: 'https://frankfurter.dev/', note: 'No key needed' },
+  { key: 'inflation', name: 'Inflation in India', by: 'MoSPI (official CPI) and World Bank', url: 'https://esankhyiki.mospi.gov.in/', note: 'No key needed' },
+  { key: 'funds', name: 'Mutual fund NAVs', by: 'AMFI data via mfapi.in', url: 'https://www.mfapi.in/', note: 'No key needed' },
+  { key: 'stocks', name: 'Stock prices', by: 'Marketstack', url: 'https://marketstack.com/', note: 'Needs a key' },
+  { key: 'crypto', name: 'Crypto prices', by: 'CoinGecko', url: 'https://www.coingecko.com/', note: 'Key optional' },
+  { key: 'news', name: 'News', by: 'The Guardian', url: 'https://open-platform.theguardian.com/access/', note: 'Needs a free key' },
+  { key: 'movies', name: 'Movies, shows and anime', by: 'TMDB', url: 'https://www.themoviedb.org/settings/api', note: 'Needs a free key' },
+  { key: 'cricket', name: 'Cricket scores', by: 'CricketData.org', url: 'https://cricketdata.org/', note: 'Needs a free key' },
 ];
 
 const NEWS_SECTIONS = { business: 'Business', money: 'Money', world: 'World', technology: 'Technology', all: 'Everything' };
@@ -115,39 +114,32 @@ function StockBudget({ budget }) {
   const commit = () => {
     const n = Math.round(Number(value));
     if (!Number.isFinite(n) || n < 1 || n === budget) return setValue(String(budget));
-    save.mutate({ stocks: { budget: n } }, { onSuccess: () => toast('Monthly budget saved') });
+    save.mutate({ stocks: { budget: n } }, { onSuccess: () => toast('Limit saved') });
   };
   return (
     <label className="field ds-budget">
-      Monthly request budget
+      Monthly limit
       <input className="input" type="number" min="1" step="1" value={value} onChange={(e) => setValue(e.target.value)} onBlur={commit} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), commit())} />
-      <span className="cm-optional">Squirl stops calling Marketstack once it has used this many this month. Free plan: 100.</span>
+      <span className="cm-optional">Free plan: 100.</span>
     </label>
   );
 }
 
-/** Profile → Data sources: switch each public data source on or off and set it up. */
+/** Settings → Data sources: switch each public data source on or off and set it up. */
 export function DataSources() {
   const { data: settings } = useLiveSettings();
   const save = useSaveLiveSettings();
   const toast = useToast();
-  const ref = useRef(null);
-  const { hash } = useLocation();
-
-  // Live links here (#data-sources); bring the section into view once it has loaded.
-  useEffect(() => {
-    if (hash === '#data-sources' && settings) ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [hash, settings]);
 
   if (!settings) return null;
   const toggle = (key, name) => (e) =>
     save.mutate({ enabled: { [key]: e.target.checked } }, { onSuccess: (s) => toast(`${name} ${s.enabled[key] ? 'on' : 'off'}`) });
 
   return (
-    <section className="profile-section" id="data-sources" ref={ref} aria-labelledby="ds-title">
+    <section className="profile-section" id="data-sources" aria-labelledby="ds-title">
       <div className="profile-section__head">
         <h2 id="ds-title">Data sources</h2>
-        <p>Free public data shown on the Live page. A source that’s off is never contacted.</p>
+        <p>Choose what shows on Live.</p>
       </div>
       <ul className="ds-list">
         {SOURCES.map((s) => {
@@ -166,39 +158,39 @@ export function DataSources() {
               {on && s.key === 'weather' && <CityPicker location={settings.location} />}
               {on && s.key === 'stocks' && (
                 <div className="ds-config">
-                  <KeyField name="marketstack" label="Marketstack API key" placeholder="Your access key" saved={settings.keys.marketstack} hint="From your Marketstack dashboard." />
+                  <KeyField name="marketstack" label="Marketstack key" placeholder="Your access key" saved={settings.keys.marketstack} />
                   <StockBudget budget={settings.stocks?.budget ?? 100} />
                 </div>
               )}
               {on && s.key === 'crypto' && (
                 <div className="ds-config">
-                  <KeyField name="coingecko" label="CoinGecko demo key (optional)" placeholder="CG-…" saved={settings.keys.coingecko} />
+                  <KeyField name="coingecko" label="CoinGecko key (optional)" placeholder="CG-…" saved={settings.keys.coingecko} />
                 </div>
               )}
               {on && s.key === 'movies' && (
                 <div className="ds-config">
                   <KeyField
                     name="tmdb"
-                    label="TMDB API key or read access token"
-                    placeholder="API key (v3) or read access token (v4)"
+                    label="TMDB key"
+                    placeholder="Your key"
                     saved={settings.keys.tmdb}
-                    hint="Free: create an account at themoviedb.org, then Settings → API."
+                    hint="Get one at themoviedb.org"
                   />
                 </div>
               )}
               {on && s.key === 'cricket' && (
                 <div className="ds-config">
-                  <KeyField name="cricket" label="CricketData.org API key" placeholder="Your free key" saved={settings.keys.cricket} hint="Free: sign up at cricketdata.org; the key is on your dashboard." />
+                  <KeyField name="cricket" label="CricketData key" placeholder="Your free key" saved={settings.keys.cricket} hint="Get one at cricketdata.org" />
                 </div>
               )}
               {on && s.key === 'news' && (
                 <div className="ds-config">
                   <KeyField
                     name="guardian"
-                    label="The Guardian API key"
+                    label="Guardian key"
                     placeholder="Your free key"
                     saved={settings.keys.guardian}
-                    hint="Get one free at open-platform.theguardian.com (Developer key)."
+                    hint="Get one at open-platform.theguardian.com"
                   />
                   <NewsDefaults news={settings.news} />
                 </div>

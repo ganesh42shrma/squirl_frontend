@@ -8,7 +8,19 @@ self.addEventListener('install', (event) => {
   // Let existing windows finish before replacing their worker and cached assets.
 });
 self.addEventListener('activate', (event) => {
-  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith('squirl-shell-') && k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    // Keep previous hashed assets for other open windows until a later single-window update.
+    if (windows.length <= 1) {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((k) => k.startsWith('squirl-shell-') && k !== CACHE).map((k) => caches.delete(k)));
+    }
+    await self.clients.claim();
+  })());
+});
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'PWA_STATUS') event.ports?.[0]?.postMessage({ paymentNotes: true, version: CACHE });
+  if (event.data?.type === 'ACTIVATE_UPDATE') event.waitUntil(self.skipWaiting());
 });
 self.addEventListener('fetch', (event) => {
   const { request } = event;
@@ -18,30 +30,94 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fetch(request).catch(() => caches.match('/offline.html')));
   } else if (paths.has(url.pathname)) {
     event.respondWith(caches.open(CACHE).then(async (cache) => (await cache.match(url.pathname)) || fetch(request)));
+  } else if (/^\/assets\/[^/]+\.(?:js|css|woff2?|svg|png)$/.test(url.pathname)) {
+    event.respondWith(caches.match(request).then((cached) => cached || fetch(request)));
   }
 });
 
+// The large icon is the app icon; the badge is a white acorn silhouette for the status bar.
+const LOOK = { icon: '/icons/squirl-192.png', badge: '/icons/squirl-badge.png', lang: 'en-IN', vibrate: [60, 40, 60] };
+
+// Push data is only ever read through these: text is flattened and capped, numbers range-checked,
+// and nothing (no body, title or URL) is shown just because the payload contains it.
+const text = (value, max = 60) => (typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().slice(0, max) : '');
+const count = (value) => (Number.isInteger(value) && value > 0 && value < 10000 ? value : 0);
+const money = (value) => (Number.isFinite(value) && value > 0 && value < 1e12
+  ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: Number.isInteger(value) ? 0 : 2 }).format(value) : '');
+const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+const dueIn = (days) => (days <= 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days} days`);
+const moment = (iso) => { const t = Date.parse(iso); return Number.isFinite(t) && t <= Date.now() + 300_000 ? t : Date.now(); };
+
+/*
+ * Each kind: where a tap goes, the plain line (used when this device keeps details off, so the
+ * server sends no `detail`), and the personal line built from the detail. Returns [title, body].
+ */
 const NOTICES = {
-  tasks: { body: 'You have tasks to review. Open Squirl for details.', url: '/app/tasks/today' },
-  habits: { body: 'A habit check-in is waiting. Open Squirl for details.', url: '/app/tasks/habits' },
-  bills: { body: 'You have a payment reminder. Open Squirl for details.', url: '/app/finance/payments' },
-  test: { body: 'Notifications are working on this device.', url: '/app/profile' },
+  tasks: {
+    url: '/app/tasks/today',
+    plain: ['Today’s quests', 'You have tasks waiting.'],
+    detail: (d) => {
+      const title = text(d.title), first = text(d.first), n = count(d.count), overdue = count(d.overdue);
+      if (title) return [`Due now${/^\d\d:\d\d$/.test(d.time || '') ? ` · ${d.time}` : ''}`, title];
+      if (!n || !first) return null;
+      return [overdue ? `${plural(n, 'quest')} waiting · ${overdue} overdue` : `${plural(n, 'quest')} for today`, n > 1 ? `${first} and ${n - 1} more` : first];
+    },
+  },
+  habits: {
+    url: '/app/tasks/habits',
+    plain: ['Keep your streak alive', 'A habit is still waiting today.'],
+    detail: (d) => {
+      const names = (Array.isArray(d.names) ? d.names : []).map((n) => text(n, 30)).filter(Boolean).slice(0, 3), n = count(d.count);
+      return n && names.length ? [`Keep your streak alive · ${plural(n, 'habit')} left`, names.join(' · ') + (n > names.length ? ` +${n - names.length}` : '')] : null;
+    },
+  },
+  bills: {
+    url: '/app/finance/payments',
+    plain: ['Payment reminder', 'A bill or EMI needs a look.'],
+    detail: (d) => {
+      const name = text(d.name, 40), amount = money(d.amount), more = count(d.count) > 1 ? ` · ${plural(count(d.count) - 1, 'more due', 'more due')}` : '';
+      if (!name) return null;
+      if (d.missed === true) return [`Missed: ${name}`, `${amount ? `${amount} · ` : ''}Tap to record it${more}`];
+      const days = Number.isInteger(d.daysUntil) && d.daysUntil >= 0 && d.daysUntil < 100 ? d.daysUntil : 0;
+      return [`${name} due ${dueIn(days)}`, `${amount || 'Tap to see it'}${more}`];
+    },
+  },
+  test: {
+    url: '/app/settings/notifications',
+    plain: ['Squirl is set up', 'Reminders will look like this.'],
+    detail: () => ['You’re all set', 'This is how Squirl will reach you.'],
+  },
 };
+const lines = (kind, detail) => {
+  const notice = NOTICES[kind];
+  if (!notice) return ['Squirl', 'Something needs a look.'];
+  return (detail && typeof detail === 'object' && notice.detail(detail)) || notice.plain;
+};
+
 const paymentId = (value) => typeof value === 'string' && /^[a-f0-9]{24}$/.test(value);
 const paymentPath = (id) => `/app/finance/ledger?payment=${id}`;
-function paymentNotice(id, failedNote, body = 'A new payment was recorded. What was this for?') {
+// "₹450 spent" / "Swiggy · What was it for?" with details on; a plain prompt without.
+function paymentLines(detail) {
+  const amount = detail && money(detail.amount), party = detail && text(detail.party, 50);
+  if (!amount) return ['New payment', 'What was this for?'];
+  return [`${amount} ${detail.type === 'credit' ? 'received' : 'spent'}`, party ? `${party} · What was it for?` : 'What was it for?'];
+}
+function paymentNotice(id, { detail, failedNote, error } = {}) {
+  const [title, body] = paymentLines(detail);
   const options = {
-    body, icon: '/icons/squirl-192.png', tag: `sms-payment-${id}`,
+    ...LOOK, body: error || body, tag: `sms-payment-${id}`,
+    // A new payment buzzes again even if an older one is still showing; a failed retry stays quiet.
+    renotify: !failedNote, silent: Boolean(failedNote), timestamp: moment(detail?.at),
     actions: [
-      ...(failedNote ? [{ action: 'retry-note', title: 'Retry saving' }] : []),
-      { action: 'add-note', type: 'text', title: 'Add note', placeholder: 'What was this for? (500 characters)' },
+      ...(failedNote ? [{ action: 'retry-note', title: 'Try again' }] : []),
+      { action: 'add-note', type: 'text', title: 'Add note', placeholder: 'What was it for?' },
     ],
-    data: { kind: 'sms_payment', promptId: id, url: paymentPath(id), ...(failedNote && { failedNote }) },
+    data: { kind: 'sms_payment', promptId: id, url: paymentPath(id), ...(detail && { detail }), ...(failedNote && { failedNote }) },
   };
-  return self.registration.showNotification('Squirl', options).catch(() => {
+  return self.registration.showNotification(title, options).catch(() => {
     // Browsers without reply-action support can still open the note form.
     const { actions, ...fallback } = options;
-    return self.registration.showNotification('Squirl', fallback);
+    return self.registration.showNotification(title, fallback);
   });
 }
 async function tellWindows(type, promptId) {
@@ -54,15 +130,15 @@ self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data?.json() || {}; } catch { /* An empty push still displays a generic notice. */ }
   if (data.kind === 'sms_payment' && paymentId(data.promptId)) {
-    event.waitUntil(Promise.all([paymentNotice(data.promptId), tellWindows('squirl:payment-recorded', data.promptId)]));
+    const detail = data.detail && typeof data.detail === 'object' ? { amount: data.detail.amount, type: data.detail.type, party: data.detail.party, at: data.detail.at } : undefined;
+    event.waitUntil(Promise.all([paymentNotice(data.promptId, { detail }), tellWindows('squirl:payment-recorded', data.promptId)]));
     return;
   }
-  const notice = NOTICES[data.kind] || { body: 'You have a Squirl reminder. Open the app for details.', url: '/app' };
-  event.waitUntil(self.registration.showNotification('Squirl', {
-    body: notice.body,
-    icon: '/icons/squirl-192.png',
+  const [title, body] = lines(data.kind, data.detail);
+  event.waitUntil(self.registration.showNotification(title, {
+    ...LOOK, body, timestamp: Date.now(),
     tag: /^[a-z0-9-]{1,64}$/.test(data.tag || '') ? data.tag : 'squirl-reminder',
-    data: { url: notice.url },
+    data: { url: NOTICES[data.kind]?.url || '/app' },
   }));
 });
 self.addEventListener('notificationclick', (event) => {
@@ -84,7 +160,8 @@ self.addEventListener('notificationclick', (event) => {
         await tellWindows('squirl:payment-note-saved', id);
       } catch {
         // Keep the unsent reply in the device's notification, never in a URL or shell cache.
-        await paymentNotice(id, note, 'Note not saved. Connect Tailscale and retry, or tap to open Squirl. Notes can be up to 500 characters.');
+        await paymentNotice(id, { detail: data.detail, failedNote: note,
+          error: note.trim().length > 500 ? 'Too long. Keep it under 500 characters.' : 'Couldn’t save your note. Try again, or tap to open Squirl.' });
       }
     })());
     return;

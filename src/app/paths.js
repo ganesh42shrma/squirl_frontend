@@ -5,7 +5,10 @@ export const financePath = (tab = 'ledger', suffix = '') => `${APP}/finance/${ta
 export const tasksPath = (tab = 'today', suffix = '') => `${APP}/tasks/${tab}${suffix}`;
 export const scoopPath = (tab = 'live', suffix = '') => `${APP}/scoop/${tab}${suffix}`;
 export const goalPath = (id) => financePath('goals', `/${id}`);
-export const PROFILE_PATH = `${APP}/profile`;
+// Settings has its own menu; Profile is one of its pages.
+export const SETTINGS_PATH = `${APP}/settings`;
+export const settingsPath = (section = '') => (section ? `${SETTINGS_PATH}/${section}` : SETTINGS_PATH);
+export const PROFILE_PATH = settingsPath('profile');
 export const DASHBOARD_PATH = APP;
 // The dashboard now edits in place; the old settings page URL redirects here.
 export const CUSTOMIZE_DASHBOARD_PATH = `${APP}?customize=1`;

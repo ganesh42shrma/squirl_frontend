@@ -42,7 +42,7 @@ export function FamilyContacts({ profile }) {
     <section className="profile-section" aria-labelledby="family-title">
       <div className="profile-section__head">
         <h2 id="family-title">Family &amp; friends</h2>
-        <p>Save your people. Matching payments go to Family.</p>
+        <p>Payments to these people go to Family.</p>
       </div>
       <div className="member-list-panel">
         <div className="member-list-head">
@@ -51,7 +51,7 @@ export function FamilyContacts({ profile }) {
         </div>
         {!contacts.length && <p className="member-hint">No members yet.</p>}
         {['pending', 'running', 'completed'].includes(sync?.status) && <p className="member-hint" role="status">
-          {['pending', 'running'].includes(sync?.status) ? sync.error ? 'Payment scan will retry shortly.' : 'Updating past payments…'
+          {['pending', 'running'].includes(sync?.status) ? sync.error ? 'Will retry shortly.' : 'Updating past payments…'
             : sync?.status === 'completed' ? `${sync.changed} ${sync.changed === 1 ? 'payment updated' : 'payments updated'}.` : ''}
         </p>}
         <ul className="member-list">

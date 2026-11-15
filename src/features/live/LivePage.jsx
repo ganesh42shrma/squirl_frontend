@@ -15,6 +15,8 @@ import {
 import '../../components/layout/layout.css';
 import { Entertainment } from './Entertainment';
 import './live.css';
+import { settingsPath } from '../../app/paths';
+const DATA_SOURCES_PATH = settingsPath('data-sources');
 
 // Public prices aren't personal, so they stay visible in guest mode; holdings use formatMoney.
 const inr = (n, digits = 2) => (n == null ? '—' : new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: digits }).format(n));
@@ -88,7 +90,7 @@ function WeatherCard() {
   const q = useWeather();
   const w = q.data;
   return (
-    <Card title="Weather" icon={CloudSun} meta={w} action={<Link className="link-button" to="/app/profile#data-sources">Change city</Link>}>
+    <Card title="Weather" icon={CloudSun} meta={w} action={<Link className="link-button" to={DATA_SOURCES_PATH}>Change city</Link>}>
       <Loading query={q}>
         {w?.data ? (
           <>
@@ -324,7 +326,7 @@ function StocksCard() {
     <Card title="Stocks" icon={TrendUp} meta={s?.needsSetup ? null : s} className="live-card--wide">
       <Loading query={q}>
         {s?.needsSetup ? (
-          <p className="live-muted">Add your Marketstack API key in <Link to="/app/profile#data-sources">Profile → Data sources</Link> for end-of-day stock prices.</p>
+          <p className="live-muted">Add a Marketstack key in <Link to={DATA_SOURCES_PATH}>Settings → Data sources</Link> to see stock prices.</p>
         ) : (
           <>
             {s?.data?.items?.length > 0 ? (
@@ -419,11 +421,11 @@ function NewsCard() {
   const q = useNews();
   const n = q.data;
   return (
-    <Card title="News" icon={Newspaper} meta={n} className="live-card--wide" action={<Link className="link-button" to="/app/profile#data-sources">Settings</Link>}>
+    <Card title="News" icon={Newspaper} meta={n} className="live-card--wide" action={<Link className="link-button" to={DATA_SOURCES_PATH}>Settings</Link>}>
       <Loading query={q}>
         {n?.needsSetup ? (
           <p className="live-muted">
-            Headlines come from The Guardian’s free API. Add your key in <Link to="/app/profile#data-sources">Profile → Data sources</Link>.
+            Add a free Guardian key in <Link to={DATA_SOURCES_PATH}>Settings → Data sources</Link>.
           </p>
         ) : (
           <>
@@ -479,7 +481,7 @@ export function LivePage() {
           {entertainment && <Entertainment enabled={enabled} />}
         </>
       ) : (
-        <p className="live-muted">All data sources are off. Turn some on in <Link to="/app/profile#data-sources">Profile → Data sources</Link>.</p>
+        <p className="live-muted">All data sources are off. Turn some on in <Link to={DATA_SOURCES_PATH}>Settings → Data sources</Link>.</p>
       )}
     </div>
   );
