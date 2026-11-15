@@ -104,3 +104,11 @@ The worker caches public interface files and provides a reconnect page; financia
 are never cached and offline financial editing is not supported. Profile → This device controls
 notifications. The private desktop serves the build and `/api` from one HTTPS origin through
 Tailscale; see [the setup guide](../squirl_backend/deployment/MOBILE.md).
+
+New SMS ledger payments can send a generic **What was this for?** push with an **Add note** text
+reply on Chrome Android. Tapping the notification opens the same prompt in the ledger as a fallback.
+Replies append to payment notes, preserving bank narration and existing annotations. This requires
+backend migration v21 and an enabled push subscription; **Profile → This device → New SMS payments**
+controls it per device. The push hides names and amounts. Failed inline replies remain in the device
+notification for explicit retry; dismissing it loses the unsent draft. See the
+[payment push contract and deployment steps](../squirl_backend/deployment/SMS.md#new-payment-push-and-purpose-notes).

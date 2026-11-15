@@ -1,6 +1,7 @@
 import { isGuestMode } from '../../lib/guestMode';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { ArrowDown, ArrowUp } from '@phosphor-icons/react';
 import { MonthSwitcher } from '../../components/ui/MonthSwitcher';
 import { EmptyJar } from '../../components/illustrations/Sketches';
@@ -16,6 +17,7 @@ import { LedgerPagination } from './LedgerPagination';
 import { paginationInfo, rememberPageSize, rememberedPageSize } from './ledgerPaging';
 import { activeFilterCount, clearedFilters, parseFilters, rangeFor, toParams, toQuery, toSummaryQuery } from './ledgerFilters';
 import { AddMemberDialog } from '../profile/AddMemberDialog';
+import { PaymentNotePrompt } from './PaymentNotePrompt';
 import './ledger.css';
 
 const NEXT_SORT = { '-date': 'date', date: '-date', '-amount': 'amount', amount: '-amount' };
@@ -39,6 +41,22 @@ function SortButton({ field, sort, onSort, children }) {
 
 export function LedgerPage() {
   const [params, setParams] = useSearchParams();
+  const queryClient = useQueryClient();
+  const paymentPrompt = params.get('payment');
+  const closePaymentPrompt = () => {
+    const next = new URLSearchParams(params); next.delete('payment');
+    setParams(next, { replace: true });
+  };
+  useEffect(() => {
+    const refresh = (event) => {
+      if (!['squirl:payment-recorded', 'squirl:payment-note-saved'].includes(event.data?.type)) return;
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['summary'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-prompt'] });
+    };
+    navigator.serviceWorker?.addEventListener('message', refresh);
+    return () => navigator.serviceWorker?.removeEventListener('message', refresh);
+  }, [queryClient]);
   const currentMonth = currentMonthKey();
   const filters = useMemo(() => parseFilters(params, currentMonth), [params, currentMonth]);
   const limit = filters.limit ?? rememberedPageSize();
@@ -109,6 +127,7 @@ export function LedgerPage() {
 
   return (
     <div className="ledger">
+      {paymentPrompt && <PaymentNotePrompt id={paymentPrompt} onClose={closePaymentPrompt} />}
       <header className="ledger__head">
         {filters.preset === 'month' ? (
           <MonthSwitcher month={filters.month} onChange={(month) => update({ preset: 'month', month })} />

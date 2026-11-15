@@ -14,12 +14,15 @@ const handlers = {};
 const cached = new Map();
 const notices = [];
 const opened = [];
+const replies = [], messages = [];
 let networkDown = false;
+let replyStatus = 200;
+let windowOpen = false;
 const self = {
   location: { origin: 'https://squirl.example.invalid' },
   addEventListener: (event, fn) => { handlers[event] = fn; },
   registration: { showNotification: async (title, options) => { notices.push({ title, ...options }); } },
-  clients: { claim: async () => {}, matchAll: async () => [], openWindow: async (url) => { opened.push(url); } },
+  clients: { claim: async () => {}, matchAll: async () => windowOpen ? [{ url: 'https://squirl.example.invalid/app', postMessage: (m) => messages.push(m), navigate: async (url) => opened.push(url), focus: async () => {} }] : [], openWindow: async (url) => { opened.push(url); } },
 };
 const cache = {
   addAll: async (files) => { for (const f of files) cached.set(f, `cached:${f}`); },
@@ -30,7 +33,14 @@ const caches = {
   delete: async (key) => { assert.notEqual(key, 'other-app'); }, match: cache.match,
 };
 const source = await readFile(new URL('dist/sw.js', root), 'utf8');
-vm.runInNewContext(source, { self, caches, URL, fetch: async () => { if (networkDown) throw new Error('offline'); return 'network'; } });
+vm.runInNewContext(source, { self, caches, URL, fetch: async (path, options) => {
+  if (networkDown) throw new Error('offline');
+  if (String(path).startsWith('/api/notifications/payments/')) {
+    replies.push({ path, options });
+    return { ok: replyStatus === 200, json: async () => ({ success: replyStatus === 200 }) };
+  }
+  return 'network';
+} });
 async function event(type, fields = {}) {
   let work;
   handlers[type]({ ...fields, waitUntil: (p) => { work = p; }, respondWith: (p) => { work = p; } });
@@ -54,4 +64,40 @@ await event('notificationclick', { notification: { close() {}, data: { url: 'htt
 assert.deepEqual(opened, ['https://squirl.example.invalid/app']);
 await event('notificationclick', { notification: { close() {}, data: { url: '/app/tasks/habits' } } });
 assert.equal(opened[1], 'https://squirl.example.invalid/app/tasks/habits');
-console.log('Passed: manifest and icon dimensions, shell-only cache, API bypass, offline fallback, private notification text, malformed push, and safe notification links.');
+const id = 'a'.repeat(24);
+windowOpen = true; networkDown = false;
+await event('push', { data: { json: () => ({ kind: 'sms_payment', promptId: id, body: 'PRIVATE AMOUNT', url: 'https://evil.invalid' }) } });
+const payment = notices.at(-1);
+assert.equal(payment.actions[0].type, 'text');
+assert.equal(payment.actions[0].action, 'add-note');
+assert.equal(payment.data.url, `/app/finance/ledger?payment=${id}`);
+assert(!payment.body.includes('PRIVATE'));
+assert.equal(messages.at(-1).type, 'squirl:payment-recorded');
+await event('notificationclick', { action: 'add-note', reply: '  Lunch  ', notification: { close() {}, data: payment.data } });
+assert.equal(replies.length, 1);
+assert.equal(replies[0].path, `/api/notifications/payments/${id}/reply`);
+assert.equal(JSON.parse(replies[0].options.body).note, 'Lunch');
+assert.equal(replies[0].options.credentials, 'same-origin');
+assert.equal(replies[0].options.headers['X-Requested-With'], 'squirl');
+assert.equal(replies[0].options.redirect, 'error');
+assert.equal(messages.at(-1).type, 'squirl:payment-note-saved');
+await event('notificationclick', { action: '', notification: { close() {}, data: payment.data } });
+assert.equal(opened.at(-1), `https://squirl.example.invalid/app/finance/ledger?payment=${id}`);
+const beforeFailure = messages.length;
+networkDown = true;
+await event('notificationclick', { action: 'add-note', reply: 'Groceries', notification: { close() {}, data: payment.data } });
+assert.equal(notices.at(-1).data.failedNote, 'Groceries', 'a failed save retains the typed reply for explicit retry');
+assert(!notices.at(-1).body.includes('Groceries'), 'draft text is not displayed on the lock screen');
+assert.equal(messages.length, beforeFailure, 'failed save never announces success');
+const failed = notices.at(-1);
+networkDown = false;
+await event('notificationclick', { action: 'retry-note', notification: { close() {}, data: failed.data } });
+assert.equal(JSON.parse(replies.at(-1).options.body).note, 'Groceries');
+replyStatus = 401;
+await event('notificationclick', { action: 'add-note', reply: 'Still here', notification: { close() {}, data: payment.data } });
+assert.equal(notices.at(-1).data.failedNote, 'Still here');
+await event('notificationclick', { action: 'add-note', reply: '', notification: { close() {}, data: payment.data } });
+assert.equal(opened.at(-1), `https://squirl.example.invalid/app/finance/ledger?payment=${id}`, 'missing inline-reply support falls back to the form');
+await event('notificationclick', { action: 'add-note', reply: 'Attack', notification: { close() {}, data: { kind: 'sms_payment', promptId: '../../evil', url: 'https://evil.invalid' } } });
+assert.equal(opened.at(-1), 'https://squirl.example.invalid/app');
+console.log('Passed: shell-only cache, private notifications, safe links, inline payment replies, session/CSRF headers, retry drafts, auth/offline failures, client refresh, and form fallback.');

@@ -91,6 +91,7 @@ export function DeviceNotifications() {
               <label><input type="checkbox" checked={preferences.tasks} onChange={(e) => set('tasks', e.target.checked)} /> Tasks</label>
               <label><input type="checkbox" checked={preferences.habits} onChange={(e) => set('habits', e.target.checked)} /> Habits</label>
               <label><input type="checkbox" checked={preferences.bills} onChange={(e) => set('bills', e.target.checked)} /> Bills and EMIs</label>
+              <label><input type="checkbox" checked={preferences.smsPayments !== false} onChange={(e) => set('smsPayments', e.target.checked)} /> New SMS payments · ask what they were for</label>
             </fieldset>
             <label className="field">Daily tasks and payment reminder
               <input className="input" type="time" value={preferences.dailyTime} onChange={(e) => set('dailyTime', e.target.value)} disabled={busy} required />
