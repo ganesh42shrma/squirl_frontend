@@ -14,7 +14,7 @@ function useImportMutation(mutationFn) {
   return useMutation({
     mutationFn,
     onSettled: () => {
-      ['imports', 'transactions', 'summary', 'tags', 'insights'].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
+      ['imports', 'transactions', 'summary', 'tags', 'insights', 'commitments', 'goals'].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
     },
   });
 }

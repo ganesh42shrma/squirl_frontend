@@ -35,27 +35,32 @@
 /* ── App shell ─────────────────────────────────────── */
 .shell {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .shell__header {
   position: sticky;
   top: 0;
   z-index: 20;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  padding: 14px var(--gutter);
   background: color-mix(in srgb, var(--paper) 88%, transparent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
 }
 
+/* Row 1: logo, Dashboard, the module launcher, and the account controls. */
+.shell__bar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 14px var(--gutter);
+}
+
 .shell__nav {
   display: flex;
+  align-items: center;
   gap: 4px;
   margin-right: auto;
-  overflow-x: auto;
-  scrollbar-width: none;
 }
 
 .shell__link {
@@ -79,10 +84,117 @@
   background: var(--stone-strong);
 }
 
+/* The module launcher: shows where you are, opens the Staggered Menu. */
+.module-launcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 7px 12px 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.module-launcher:hover,
+.module-launcher[aria-expanded='true'] {
+  background: var(--stone);
+  color: var(--ink);
+}
+
+.module-launcher.is-module {
+  color: var(--ink);
+  background: var(--stone-strong);
+  border-color: transparent;
+}
+
+.module-launcher__plus {
+  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.module-launcher[aria-expanded='true'] .module-launcher__plus {
+  transform: rotate(225deg);
+}
+
+/* Row 2: the current module's pages. Scrolls sideways on a phone, with a soft fade at the edge. */
+.shell__tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 calc(var(--gutter) - 8px) 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+
+.shell__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.shell__tab-wrap {
+  display: inline-flex;
+  align-items: center;
+  scroll-snap-align: start;
+}
+
+.shell__link--tab {
+  padding: 6px 12px;
+  border-radius: var(--radius);
+}
+
+.shell__tab-divider {
+  align-self: stretch;
+  width: 1px;
+  margin: 6px 10px;
+  background: var(--line);
+}
+
 .shell__main {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
   max-width: 1180px;
   margin: 0 auto;
   padding: clamp(24px, 4vw, 48px) var(--gutter) 96px;
+}
+
+.quote-footer {
+  width: 100%;
+  padding: 0 var(--gutter) 32px;
+}
+
+.quote-footer__inner {
+  max-width: 1084px;
+  margin: 0 auto;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+
+.quote-footer__eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: var(--clay-ink);
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+}
+
+.quote-footer__text {
+  max-width: 56ch;
+  margin: 14px auto 8px;
+  color: var(--ink-soft);
+  font-family: var(--font-serif);
+  font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 /* Shared page heading used by every app page. */
@@ -102,19 +214,25 @@
 }
 
 @media (max-width: 640px) {
-  .shell__header {
-    flex-wrap: wrap;
-    gap: 10px 16px;
+  .shell__bar {
+    gap: 8px;
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
 
-  .shell__nav {
-    order: 3;
-    width: 100%;
-    margin: 0 -6px;
+  /* The logo already goes to the dashboard, and the menu lists it, so the row stays on one line. */
+  .shell__link--dash {
+    display: none;
   }
 
-  .logo {
-    margin-right: auto;
+  .module-launcher {
+    padding: 6px 10px 6px 12px;
+  }
+
+  .shell__tabs {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    padding-right: 28px;
   }
 }
 
@@ -168,4 +286,13 @@
 @media (max-width: 1080px) {
   .guest-mode-toggle { width: 38px; padding: 0; }
   .guest-mode-toggle span { display: none; }
+}
+
+@media (max-width: 380px) {
+  .shell__bar { gap: 6px; }
+  .shell__bar .logo__word { display: none; }
+  .shell__nav { min-width: 0; }
+  .module-launcher { min-width: 0; max-width: 100%; }
+  .module-launcher__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .module-launcher__plus { display: none; }
 }

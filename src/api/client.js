@@ -42,7 +42,7 @@ export async function api(path, { method = 'GET', query, body, signal } = {}) {
     });
   } catch (err) {
     if (err.name === 'AbortError') throw err;
-    throw new ApiError('Can’t reach the Squirl server. Is the backend running on port 4000?', {
+    throw new ApiError('Can’t reach your Squirl computer. Check your connection and Tailscale, and make sure Squirl is running.', {
       code: 'NETWORK_ERROR',
     });
   }

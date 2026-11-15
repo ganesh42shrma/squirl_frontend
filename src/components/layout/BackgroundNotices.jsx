@@ -7,6 +7,7 @@ import { useLlmStatus, useSuggestionStatus } from '../../features/insights/useIn
 import { useCommitmentAlerts } from '../../features/commitments/useCommitments';
 import { formatDate, formatMoney, todayISO } from '../../lib/format';
 import { useWatchFamilySync } from '../../features/auth/useAuth';
+import { financePath } from '../../app/paths';
 
 const SEEN_KEY = 'squirl-seen-alerts';
 const plural = (n, word) => `${n.toLocaleString('en-IN')} ${word}${n === 1 ? '' : 's'}`;
@@ -43,13 +44,13 @@ export function BackgroundNotices() {
   const { data: alerts } = useCommitmentAlerts();
   const queryClient = useQueryClient();
   const completedRun = useRef(null);
-  const onSortOut = location.pathname === '/app/sort-out';
+  const onSortOut = location.pathname === financePath('sort-out');
 
   // Refresh even when a fast run finishes between polls.
   useEffect(() => {
     if (!job?.lastRunAt || job.running || completedRun.current === job.lastRunAt) return;
     completedRun.current = job.lastRunAt;
-    ['transactions', 'summary', 'insights', 'rules', 'tags', 'profile'].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
+    ['transactions', 'summary', 'insights', 'rules', 'tags', 'profile', 'commitments', 'goals'].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
     if (job.autoApplied > 0 && !onSortOut) toast(`Categorized ${plural(job.autoApplied, 'row')}.`);
   }, [job, onSortOut, toast, queryClient]);
 
@@ -65,7 +66,7 @@ export function BackgroundNotices() {
         a.type === 'missed'
           ? `No payment found for ${a.name}${amount}, due ${formatDate(a.date)}.`
           : `${a.name}${amount} is due ${a.daysUntil === 0 ? 'today' : a.daysUntil === 1 ? 'tomorrow' : `in ${a.daysUntil} days`} (${formatDate(a.date)}).`;
-      toast(message, { tone: a.type === 'missed' ? 'error' : 'info', duration: 10000, action: { label: 'View', onClick: () => navigate('/app/payments') } });
+      toast(message, { tone: a.type === 'missed' ? 'error' : 'info', duration: 10000, action: { label: 'View', onClick: () => navigate(financePath('payments')) } });
     }
     markSeen(new Set([...seen, ...fresh.map((a) => a.key)]));
   }, [alerts, toast, navigate]);
@@ -80,7 +81,7 @@ export function BackgroundNotices() {
       <span className="bg-notice__bar" aria-hidden="true">
         <span style={{ width: `${job.total ? Math.round(((job.done || 0) / job.total) * 100) : 0}%` }} />
       </span>
-      <Link to="/app/sort-out">View</Link>
+      <Link to={financePath('sort-out')}>View</Link>
     </div>
   );
 }

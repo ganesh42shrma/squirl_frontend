@@ -1,0 +1,15 @@
+{
+  "id": "/",
+  "name": "Squirl",
+  "short_name": "Squirl",
+  "description": "Your money, tasks, and habits. Kept on your own computer.",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F7F3EB",
+  "theme_color": "#F7F3EB",
+  "icons": [
+    { "src": "/icons/squirl-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/squirl-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

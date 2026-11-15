@@ -11,6 +11,7 @@ import { describeError } from '../../api/client';
 import { formatAccount, formatDate, formatMoney, formatMonth, formatMonthShort, shortMoney, todayISO } from '../../lib/format';
 import { MONEY_TYPES } from '../../lib/moneyTypes';
 import { useBalances, useHistory, useLlmStatus, useWriteSummary } from './useInsights';
+import { financePath } from '../../app/paths';
 
 const money = (n) => formatMoney(Math.round(n), { rounded: true });
 
@@ -235,7 +236,7 @@ export function HistoryView() {
       <div className="insight-empty">
         <EmptyJar size={88} />
         <p>
-          No history yet. <Link to="/app/imports">Import a statement</Link>, a year’s worth works best.
+          No history yet. <Link to={financePath('imports')}>Import a statement</Link>, a year’s worth works best.
         </p>
       </div>
     );

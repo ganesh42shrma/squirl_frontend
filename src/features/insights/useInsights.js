@@ -59,7 +59,7 @@ function useSuggestionMutation(mutationFn) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn,
-    onSettled: () => ['insights', 'transactions', 'summary', 'rules'].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] })),
+    onSettled: () => ['insights', 'transactions', 'summary', 'rules', 'commitments', 'goals'].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] })),
   });
 }
 

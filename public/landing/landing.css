@@ -1,0 +1,186 @@
+/*
+  Squirl landing: page CSS for the journey (src/features/landing). The kit in public/kit gives the
+  tokens, type, nav, buttons and grid; this file lays out the pinned stage, the chapters over it,
+  the panels that live in the laptop's screen, and the footer.
+*/
+
+/* the client's logo in the nav and footer */
+.nav__logo .sq-acorn { width: 26px; height: 26px; flex: none; margin-right: 8px; }
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .nav--centre .nav__bar { grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--s-4); }
+}
+
+/* ------------------------------------------------------------------ the journey's frame */
+
+/* One tall section. The chapters and the pin share one grid cell: the chapters set the height, the
+   pin stretches to it and holds the stage, which sticks to the screen for the whole scroll. */
+#journey.sq-plug { position: relative; display: grid; height: auto; min-height: 0; padding: 0; background: #16130f; --bg: #16130f; }
+.sq-plug__chapters { grid-area: 1 / 1; position: relative; z-index: 2; pointer-events: none; }
+.sq-plug__pin { grid-area: 1 / 1; position: relative; z-index: 1; }
+.sq-plug__stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; --shade: 1; --paper: 0; }
+
+.sq-plug__scene { position: absolute; inset: 0;
+  /* the still picture when WebGL is missing or fails: the drive's clay glow on the dark ground */
+  background: radial-gradient(40% 50% at 68% 52%, rgb(165 84 58 / .45), transparent 70%), radial-gradient(18% 22% at 62% 50%, rgb(159 212 255 / .3), transparent 70%), #16130f; }
+.sq-plug__scene > canvas { display: block; width: 100%; height: 100%; }
+/* the shade that keeps the words readable; it lifts while the camera is inside the screen */
+.sq-plug__scene::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: var(--shade);
+  background: linear-gradient(90deg, rgb(15 13 11 / .9) 0, rgb(15 13 11 / .62) 30%, rgb(15 13 11 / .18) 50%, transparent 62%),
+    radial-gradient(120% 90% at 66% 50%, transparent 55%, rgb(15 13 11 / .8)); }
+
+/* ------------------------------------------------------------------ chapters */
+
+/* a chapter's words start 34% down its first screen and stick there while the chapter scrolls by */
+.sq-chapter { box-sizing: border-box; min-height: calc(var(--ch, 1) * 100vh); min-height: calc(var(--ch, 1) * 100svh); padding-top: 34vh; padding-top: 34svh; }
+.sq-chapter--spacer { padding: 0; }
+.sq-chapter > .wrap { position: sticky; top: 34vh; top: 34svh; width: min(100% - 2 * var(--gut), 1280px); margin-inline: auto; }
+.sq-chapter--hero { padding-top: 25vh; padding-top: 25svh; }
+.sq-chapter--hero > .wrap { top: 25vh; top: 25svh; }
+.sq-chapter__text { width: min(440px, 100%); pointer-events: auto; }
+.sq-chapter--hero .sq-chapter__text { width: min(600px, 100%); display: grid; justify-items: start; gap: var(--s-5); }
+
+.sq-plug__h1 { margin: 0; font: var(--display-weight) clamp(40px, 5vw, 72px)/1.02 var(--font-display); letter-spacing: var(--display-tracking-xl); text-wrap: balance; }
+.sq-plug__title { margin: 0; font: var(--display-weight) clamp(32px, 3.4vw, 52px)/1.04 var(--font-display); letter-spacing: var(--display-tracking); text-wrap: balance; }
+.sq-plug__line { margin: var(--s-4) 0 0; font-size: 18px; line-height: 1.5; color: var(--muted); }
+.sq-chapter--hero .sq-plug__line { margin: 0; font-size: 20px; max-width: 28em; }
+.sq-plug__points { list-style: none; margin: var(--s-5) 0 0; padding: 0; display: grid; gap: var(--s-2); font-size: 16px; }
+.sq-plug__points li { display: flex; align-items: center; gap: var(--s-3); }
+.sq-plug__points li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--dot, #e09a7f); flex: none; }
+/* the five kinds: a row of chips in the colours the rows take in the scene */
+.sq-plug__points--kinds { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4); }
+.sq-plug__points--kinds li::before { width: 10px; height: 10px; border-radius: 3px; }
+
+/* a chapter's lines rise as it arrives and fall back as it leaves (the hero has its own entrance) */
+.sq-chapter:not(.sq-chapter--hero) .sq-chapter__text > * { opacity: 0; transform: translateY(18px); transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1); }
+.sq-chapter:not(.sq-chapter--hero) .sq-chapter__text[data-in] > * { opacity: 1; transform: none; }
+.sq-chapter__text[data-in] > :nth-child(2) { transition-delay: .08s; }
+.sq-chapter__text[data-in] > :nth-child(3) { transition-delay: .16s; }
+
+/* ------------------------------------------------------------------ the screen's panels */
+
+/* the laptop's screen becomes the page: the paper ground comes up over the scene, then a panel on it */
+.sq-plug__paper { position: absolute; inset: 0; background: #faf9f5; opacity: var(--paper); pointer-events: none; }
+.sq-panel { position: absolute; inset: 0; box-sizing: border-box; display: flex; align-items: center; padding: calc(var(--nav) + var(--s-6)) 0 var(--s-6);
+  background: none; opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(calc((1 - var(--o, 0)) * 14px)); }
+.sq-panel > .wrap { width: min(100% - 2 * var(--gut), 1280px); margin-inline: auto; }
+.sq-panel h2 { margin: 0; }
+/* the last words stand where a chapter's do, over the scene */
+.sq-panel--start { align-items: flex-start; padding-top: 34vh; padding-top: 34svh; }
+.sq-start { width: min(560px, 100%); display: grid; justify-items: start; gap: var(--s-5); }
+.sq-start .sq-plug__h1 { font-size: clamp(36px, 4.2vw, 60px); }
+.sq-start .sq-plug__line { margin: 0; font-size: 20px; }
+
+/* the months: Squirl's dashboard */
+.ui { --fx-bg: #ffffff; --fx-ink: #1f1e1d; --fx-muted: #6b6862; --fx-accent: #a5543a; --ui-font: var(--font-text); --ui-radius: 8px; font-family: var(--font-text); }
+.sq-pane-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 44px; padding: 0 16px; border-bottom: 1px solid var(--u-line); font-size: 13px; color: var(--u-muted); }
+.sq-pane-head b { font-weight: 500; color: var(--u-ink); font-size: 14px; }
+.sq-dash { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); margin-top: var(--s-7); height: clamp(220px, 38svh, 360px); background: var(--u-bg); color: var(--u-ink); border-radius: 10px; overflow: hidden; font-size: 13px;
+  box-shadow: 0 0 0 1px rgb(31 30 29 / .1), 0 24px 60px -32px rgb(31 30 29 / .35); }
+.sq-dash__chart { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--u-line); }
+.sq-legend { display: flex; align-items: center; gap: 6px; }
+.sq-legend i { width: 8px; height: 8px; border-radius: 2px; margin-left: 8px; }
+.sq-bars { flex: 1; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; align-items: end; padding: 20px 24px 16px; min-height: 0; }
+.sq-bar { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 8px; height: 100%; justify-items: center; color: var(--u-muted); }
+.sq-bar__stack { align-self: end; width: min(56px, 100%); display: flex; flex-direction: column; gap: 2px; }
+.sq-bar__stack i { display: block; min-height: 4px; border-radius: 2px; }
+:is(.sq-bar__stack, .sq-legend) i[data-kind="spent"] { background: #dc6a4a; }
+:is(.sq-bar__stack, .sq-legend) i[data-kind="invested"] { background: #3f77c9; }
+:is(.sq-bar__stack, .sq-legend) i[data-kind="moved"] { background: #d9ae2c; }
+:is(.sq-bar__stack, .sq-legend) i[data-kind="lent"] { background: #a68be0; }
+.sq-dash__note { display: flex; flex-direction: column; gap: 12px; }
+.sq-note { margin: 0 20px; font-size: 14px; line-height: 1.55; color: var(--u-text-2); }
+.sq-pane-head + .sq-note { margin-top: 8px; }
+.sq-dash__note b { color: var(--u-ink); font-weight: 500; font-variant-numeric: tabular-nums; }
+.sq-dash__note .sq-small { margin-top: auto; margin-bottom: 20px; font-size: 12px; color: var(--u-muted); }
+
+/* the questions, and the banks the importer reads beside them */
+.sq-banks { margin-top: var(--s-7); max-width: 420px; background: var(--u-bg); border-radius: 10px; box-shadow: 0 0 0 1px rgb(31 30 29 / .08), 0 18px 44px -20px rgb(31 30 29 / .35); font-size: 13px; color: var(--u-ink); overflow: hidden; }
+.sq-banks__head { display: flex; justify-content: space-between; align-items: center; height: 40px; padding: 0 14px; border-bottom: 1px solid var(--u-line); color: var(--u-muted); }
+.sq-banks__head b { color: var(--u-ink); font-weight: 500; }
+.sq-banks ul { list-style: none; margin: 0; padding: 0 14px; }
+.sq-banks li { display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: center; gap: 12px; padding: 12px 0; }
+.sq-banks li + li { border-top: 1px solid var(--u-line); }
+.sq-banks li > span:last-child { display: grid; gap: 2px; }
+.sq-banks li b { font-weight: 500; }
+.sq-banks li span span { color: var(--u-muted); }
+.sq-bank { display: grid; place-items: center; height: 28px; border-radius: 4px; font-size: 12px; font-weight: 500; color: #fff; background: #2a5fa8; }
+.sq-bank[data-bank="Kotak"] { background: #c8102e; }
+.sq-panel--faq .faq__item { padding-block: var(--s-4); }
+.sq-panel--faq .faq__item:first-child { padding-top: 0; }
+
+/* ------------------------------------------------------------------ the chapter rail */
+
+.sq-rail { position: absolute; z-index: 3; right: calc(var(--gut) / 2 - 6px); top: 50%; transform: translateY(-50%); display: grid; gap: 4px; color: #faf9f5; transition: color .3s; }
+.sq-plug__stage[data-on-paper] .sq-rail { color: #1f1e1d; }
+.sq-rail a { position: relative; display: grid; place-items: center; width: 24px; height: 24px; color: inherit; text-decoration: none; }
+.sq-rail a::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .35; transition: opacity .25s, transform .25s, background-color .25s; }
+.sq-rail a[data-on]::before { opacity: 1; transform: scale(1.6); background: #e09a7f; }
+.sq-rail a:hover::before, .sq-rail a:focus-visible::before { opacity: 1; }
+.sq-rail span { position: absolute; right: 100%; margin-right: 6px; padding: 2px 8px; border-radius: 4px; font-size: 13px; line-height: 20px; white-space: nowrap; background: rgb(15 13 11 / .8); color: #faf9f5; opacity: 0; transform: translateX(4px); transition: opacity .2s, transform .2s; pointer-events: none; }
+.sq-rail a:hover span, .sq-rail a:focus-visible span { opacity: 1; transform: none; }
+
+/* ------------------------------------------------------------------ the footer */
+
+.sq-foot { background: #16130f; --bg: #16130f; padding: var(--s-8) 0 var(--s-6); }
+.sq-foot__top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: var(--s-6) var(--s-8); }
+.sq-foot__brand { display: grid; gap: var(--s-3); }
+.sq-foot__brand p { margin: 0; color: var(--muted); }
+.sq-foot__links { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-6); }
+.sq-foot__links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); text-decoration: none; }
+.sq-foot__links a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.sq-foot__legal { margin: var(--s-7) 0 0; font-size: 14px; color: var(--muted); }
+
+/* ------------------------------------------------------------------ narrower screens */
+
+@media (max-width: 899px) {
+  /* no free column beside the model: the picture stands in the upper half, the words below it */
+  .sq-chapter { padding-top: 56vh; padding-top: 56svh; }
+  .sq-chapter--spacer { padding-top: 0; }
+  .sq-chapter > .wrap { top: 56vh; top: 56svh; }
+  .sq-chapter--hero { padding-top: 50vh; padding-top: 50svh; }
+  .sq-chapter--hero > .wrap { top: 50vh; top: 50svh; }
+  .sq-panel--start { padding-top: 54vh; padding-top: 54svh; }
+  .sq-plug__scene::after { background: linear-gradient(to top, rgb(15 13 11 / .94) 0, rgb(15 13 11 / .8) 34%, rgb(15 13 11 / .3) 52%, transparent 64%); }
+  .sq-rail { display: none; }
+  .sq-plug__h1 { font-size: clamp(34px, 8.6vw, 52px); }
+  .sq-chapter--hero .sq-chapter__text { gap: var(--s-4); }
+  .sq-chapter--hero .sq-plug__line { font-size: 17px; }
+}
+@media (min-width: 900px) and (max-width: 1279px) {
+  .sq-chapter--hero .sq-chapter__text { width: min(430px, 100%); }
+  .sq-plug__scene::after { background: linear-gradient(90deg, rgb(15 13 11 / .9) 0, rgb(15 13 11 / .75) 45%, rgb(15 13 11 / .18) 65%, transparent 78%),
+    radial-gradient(120% 90% at 66% 50%, transparent 55%, rgb(15 13 11 / .8)); }
+}
+@media (max-width: 1023px) {
+  .sq-banks { display: none; }
+  .sq-panel--faq .grid { gap: var(--s-5); }
+}
+@media (max-width: 639px) {
+  .sq-panel { align-items: flex-start; padding-top: calc(var(--nav) + var(--s-5)); }
+  .sq-panel--start { padding-top: 54vh; padding-top: 54svh; }
+  .sq-dash { grid-template-columns: minmax(0, 1fr); height: auto; margin-top: var(--s-5); }
+  .sq-dash__chart { height: clamp(150px, 24svh, 200px); border-right: 0; border-bottom: 1px solid var(--u-line); }
+  .sq-dash__note .sq-small { margin-top: 0; margin-bottom: 14px; }
+  .sq-legend { display: none; }
+  .sq-bars { gap: 8px; padding: 14px 16px 10px; }
+  .sq-panel--faq .faq__item { padding-block: 10px; }
+  .sq-panel--faq .faq__item h3 { font-size: 17px; }
+  .sq-panel--faq .faq__item p { font-size: 15px; }
+}
+
+/* ------------------------------------------------------------------ reduced motion */
+
+/* No scene and nothing pinned: the chapters are plain blocks, then the months, the questions and
+   the close, each as an ordinary block in reading order. */
+#journey.sq-plug[data-reduced] { display: block; }
+#journey.sq-plug[data-reduced] .sq-plug__chapters, #journey.sq-plug[data-reduced] .sq-plug__pin { grid-area: auto; }
+#journey.sq-plug[data-reduced] .sq-plug__chapters { padding: calc(var(--nav) + var(--s-8)) 0 var(--s-9); display: grid; gap: var(--s-9); pointer-events: auto; }
+#journey.sq-plug[data-reduced] .sq-chapter { min-height: 0; padding-top: 0; scroll-margin-top: calc(var(--nav) + var(--s-5)); }
+#journey.sq-plug[data-reduced] .sq-chapter > .wrap { position: static; }
+#journey.sq-plug[data-reduced] .sq-chapter--spacer { display: none; }
+#journey.sq-plug[data-reduced] .sq-chapter__text > * { opacity: 1; transform: none; }
+#journey.sq-plug[data-reduced] .sq-plug__stage { position: static; height: auto; overflow: visible; }
+#journey.sq-plug[data-reduced] .sq-plug__paper, #journey.sq-plug[data-reduced] .sq-rail { display: none; }
+#journey.sq-plug[data-reduced] .sq-panel { position: static; opacity: 1; visibility: visible; pointer-events: auto; transform: none; padding: var(--s-9) 0; }
+#journey.sq-plug[data-reduced] .sq-panel.ground-base { background: #faf9f5; }
+#journey.sq-plug[data-reduced] .sq-panel--start { padding-top: var(--s-9); }

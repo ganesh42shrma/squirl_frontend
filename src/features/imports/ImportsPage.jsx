@@ -10,6 +10,7 @@ import { importSummary, coverageHint, statementPeriod } from './importSummary';
 import { useCreateImport, useDeleteImport, useImports } from './useImports';
 import '../../components/layout/layout.css';
 import './imports.css';
+import { financePath } from '../../app/paths';
 
 const BANKS = [
   { value: 'auto', label: 'Detect' },
@@ -185,7 +186,7 @@ function ImportForm() {
             </p>
             {coverageHint(result) && <p className="import-result__coverage">{coverageHint(result)}</p>}
             {result.stats.inserted > 0 && (
-              <Link to={`/app/ledger?importId=${result._id}`} className="btn btn--accent btn--small">
+              <Link to={financePath('ledger', `?importId=${result._id}`)} className="btn btn--accent btn--small">
                 View new transactions
               </Link>
             )}
@@ -240,7 +241,7 @@ function ImportHistoryItem({ batch }) {
       </div>
       <div className="import-item__actions">
         {batch.status === 'completed' && batch.stats.inserted > 0 && (
-          <Link to={`/app/ledger?importId=${batch._id}`} className="btn btn--quiet btn--small">
+          <Link to={financePath('ledger', `?importId=${batch._id}`)} className="btn btn--quiet btn--small">
             Review rows
           </Link>
         )}

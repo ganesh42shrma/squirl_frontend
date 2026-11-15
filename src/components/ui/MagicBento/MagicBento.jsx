@@ -54,7 +54,7 @@ export function MagicBento({ items, className = '' }) {
   }
 
   return <div ref={root} className={`magic-bento dashboard-widget-grid ${className}`} onPointerMove={move} onPointerLeave={leave} onPointerDown={pulse}>
-    {items.map((item) => <div key={item.id} className={`magic-bento__card dashboard-widget-slot${item.full ? ' is-full' : ''}`} data-widget={item.id}>
+    {items.map((item) => <div key={item.id} className={`magic-bento__card dashboard-widget-slot is-${item.size || (item.full ? 'full' : 'm')}`} data-widget={item.id} data-module={item.module}>
       <span className="magic-bento__effects" aria-hidden="true"><span className="magic-bento__light" /><span className="magic-bento__wave" /></span>
       <div className="magic-bento__content">{item.content}</div>
     </div>)}

@@ -1,0 +1,288 @@
+consistency  http://localhost:5173/
+
+1440x900  11 screens  3 FAIL  12 WARN
+  FAIL cut-text        footer#contact > div.wrap > div.closing__cta.close--word > p.close__word  "Squirl"
+       cut 38px at the top by the overflow of footer#contact > div.wrap > div.closing__cta.close--word > p.close__word  [1440-11-cut-text.jpg]
+       fix: give the text room: no overflow clipping a line, no line past its box
+  FAIL copy-fact       h1#hero-h  "A money ledger on your own machine"
+       the first screen holds no number, price, date, place, platform or genre  [1440-01-copy-fact.jpg]
+       fix: put one hard fact from the brief on the first screen: a number, a price, a date, the place, the platforms it runs on or a game's genre; take it from the brief or remove the claim
+  FAIL copy-headings   h2#sorting-h  "Squirl sorts every row into a category. "
+       "Squirl sorts every row into a category. You can change any o" names no product, part, place or section (5 headings like it; at most one brand line per page) (and 4 more like it: "Starts with categories t", "Remembers each merchant", "Fills the gaps with a lo", "Tags rows across categor")  [1440-08-copy-headings.jpg]
+       fix: name the thing in every heading: the product, a part, the place or a section noun
+  WARN cta             section#sorting  "Squirl sorts every row into a category. "
+       a section over 1.5 screens long with no link or button in it  [1440-10-cta.jpg]
+       fix: add the action: a button in the hero, one on every priced item, one in the closing section
+  WARN section-gaps    section#imports / section#sorting
+       269px between these sections, +43% against the median 188px  [1440-09-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN section-gaps    section#months / section#faq
+       313px between these sections, +37% against the median 229px of gaps at a change of ground  [1440-12-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN nav-labels      div#root > header.nav.nav--centre > div.wrap.nav__bar > a.nav__logo  "Squirl"
+       "Squirl" opens a section headed "A money ledger on your own machine"  [1440-02-nav-labels.jpg]
+       fix: name each nav link after the heading of the section it opens
+  WARN nav-labels      div.wrap.nav__bar > nav.nav__links > div.nav__item:nth-of-type(2) > a.nav__link  "Imports"
+       "Imports" opens a section headed "Reads your bank’s PDF statements"  [1440-03-nav-labels.jpg]
+       fix: name each nav link after the heading of the section it opens
+  WARN nav-labels      div.wrap.nav__bar > nav.nav__links > div.nav__item:nth-of-type(4) > a.nav__link  "Months"
+       "Months" opens a section headed "Five kinds of money, kept apart"  [1440-04-nav-labels.jpg]
+       fix: name each nav link after the heading of the section it opens
+  WARN label-centre    header.nav.nav--centre > div.wrap.nav__bar > div.nav__actions > a.btn.btn--primary  "Start your ledger"
+       its label sits 18px off-centre (25px of room at the left, 43px at the right) (and 1 more like it: "Start your ledger")  [1440-05-label-centre.jpg]
+       fix: centre the label in its button, or fill the empty side with an icon
+  WARN nav-current     div#root > header.nav.nav--centre
+       the nav stays on screen with 5 links to the page's sections, but never marks the one you are in (no link changes as the page scrolls)  [1440-07-nav-current.jpg]
+       fix: mark the link of the section on screen (a colour, a weight or a line under it) as the visitor scrolls
+  WARN button-contrast div.hero-text > div.hero__c > div.btn-row > a.btn.btn--secondary  "See the ledger"
+       the button "See the ledger" (#e6e5e1) stands only 1.20:1 off the ground around it: it reads as part of the ground, or as switched off  [1440-06-button-contrast.jpg]
+       fix: give the button a fill that stands at least 1.5:1 off what is around it, or an outline in the ink
+  WARN share-meta      head
+       the head lacks og:title, og:description, og:image, twitter:card: a shared link shows no picture or title of its own
+       fix: copy the head block of starter.html: og tags, twitter:card, the icon and theme-color (references/system.md, Head)
+  WARN action-repeat   header.nav.nav--centre > div.wrap.nav__bar > div.nav__actions > a.btn.btn--primary:nth-of-type(2)  "start your ledger"
+       "start your ledger" shows 2 times on the first screen at 1440px (nav, hero): the nav's button and the hero's; nothing else on the screen may repeat it  [1440-13-action-repeat.jpg]
+       fix: show the action once a screen besides the nav's button: the hero's, the close's or the phone bar's, never all at once
+  WARN section-air     section#sorting  "Squirl sorts every row into a category. "
+       screen group 2 of this two-screen section fills 37.5% of a screen: 40% or more (25% WARN) (SR-3)  [1440-rhythm-01-section-air.jpg]
+       fix: fill the section to 55%: more content, a picture or a background layer, or merge it into the section above as its last block
+  (probe error) effect-kind: 2 files not read: @phosphor-icons_react.js (over 3 MB (17.6 MB)), react-dom_client.js (over 3 MB (3.1 MB))
+
+1024x768  11 screens  4 FAIL  8 WARN
+  FAIL cut-text        div.sq-main > div.sq-rows > div.sq-row:nth-of-type(3) > span.sq-row__date  "05 Mar"
+       cut 4px at the bottom by the overflow of section.hero.hero--centred > div.wrap > div.hero-text > div.hero__window (and 3 more like it: "SIP, Nifty 50 index fund", "SIPs", "−₹25,000")  [1024-01-cut-text.jpg]
+       fix: give the text room: no overflow clipping a line, no line past its box
+  FAIL cut-text        div.app__pane.app__pane--list > ul.sq-months > li:nth-of-type(7) > span.sq-months__name  "September"
+       cut 12px at the bottom by the overflow of section#ledger > div.wrap > div.ui.app > div.app__pane.app__pane--list (and 1 more like it: "39 rows · ₹46,905")  [1024-06-cut-text.jpg]
+       fix: give the text room: no overflow clipping a line, no line past its box
+  FAIL cut-text        footer#contact > div.wrap > div.closing__cta.close--word > p.close__word  "Squirl"
+       cut 27px at the top by the overflow of footer#contact > div.wrap > div.closing__cta.close--word > p.close__word  [1024-11-cut-text.jpg]
+       fix: give the text room: no overflow clipping a line, no line past its box
+  FAIL section-gaps    section#imports / section#sorting
+       346px between these sections, +83% against the median 189px  [1024-07-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN cut-text        div.ui.sq-import > ul.sq-imports > li:nth-of-type(4) > span.sq-imports__bank  "SBI"
+       cut 8px at the bottom by the overflow of section#imports > div.wrap > div.grid.grid--top > div.frame.frame--split: a fragment run out through its panel's edge (and 1 more like it: "Undo")  [1024-08-cut-text.jpg]
+       fix: give the text room: no overflow clipping a line, no line past its box
+  WARN cta             section#sorting  "Squirl sorts every row into a category. "
+       a section over 1.5 screens long with no link or button in it  [1024-09-cta.jpg]
+       fix: add the action: a button in the hero, one on every priced item, one in the closing section
+  WARN section-gaps    section#months / section#faq
+       uneven space at the edge of a band: 117px outside its edge, 75px inside it (the space on either side of a change of ground reads as one gap only when the two match)  [1024-10-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN label-centre    header.nav.nav--centre > div.wrap.nav__bar > div.nav__actions > a.btn.btn--primary  "Start your ledger"
+       its label sits 18px off-centre (25px of room at the left, 43px at the right) (and 1 more like it: "Start your ledger")  [1024-02-label-centre.jpg]
+       fix: centre the label in its button, or fill the empty side with an icon
+  WARN copy-length     h2#ledger-h  "The ledger, one month at a time. Every c"
+       a section heading of 12 words on 4 lines at 40.9px: a paragraph set in display type  [1024-04-copy-length.jpg]
+       fix: cut the heading to one short line (2 to 12 words) and move the rest into the text under it
+  WARN nav-current     div#root > header.nav.nav--centre
+       the nav stays on screen with 5 links to the page's sections, but never marks the one you are in (no link changes as the page scrolls)  [1024-05-nav-current.jpg]
+       fix: mark the link of the section on screen (a colour, a weight or a line under it) as the visitor scrolls
+  WARN button-contrast div.hero-text > div.hero__c > div.btn-row > a.btn.btn--secondary  "See the ledger"
+       the button "See the ledger" (#e6e5e1) stands only 1.20:1 off the ground around it: it reads as part of the ground, or as switched off  [1024-03-button-contrast.jpg]
+       fix: give the button a fill that stands at least 1.5:1 off what is around it, or an outline in the ink
+  WARN action-repeat   header.nav.nav--centre > div.wrap.nav__bar > div.nav__actions > a.btn.btn--primary:nth-of-type(2)  "start your ledger"
+       "start your ledger" shows 2 times on the first screen at 1024px (nav, hero): the nav's button and the hero's; nothing else on the screen may repeat it  [1024-12-action-repeat.jpg]
+       fix: show the action once a screen besides the nav's button: the hero's, the close's or the phone bar's, never all at once
+
+820x1180  11 screens  4 FAIL  11 WARN
+  FAIL cut-text        div.app__pane.app__pane--list > ul.sq-months > li:nth-of-type(5) > span.sq-months__name  "November"
+       cut 14px at the bottom by the overflow of section#ledger > div.wrap > div.ui.app > div.app__pane.app__pane--list (and 1 more like it: "44 rows · ₹49,860")  [820-04-cut-text.jpg]
+       fix: give the text room: no overflow clipping a line, no line past its box
+  FAIL cut-text        footer#contact > div.wrap > div.closing__cta.close--word > p.close__word  "Squirl"
+       cut 22px at the top by the overflow of footer#contact > div.wrap > div.closing__cta.close--word > p.close__word  [820-12-cut-text.jpg]
+       fix: give the text room: no overflow clipping a line, no line past its box
+  FAIL section-gaps    section#imports / section#sorting
+       332px between these sections, +75% against the median 190px  [820-06-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  FAIL hole            section#sorting  "Squirl sorts every row into a category. "
+       an empty hole 616x504px inside the section (43% of the screen's height), with content above and below it  [820-07-hole.jpg]
+       fix: close the empty space: move the content together, or give the space the visual it lacks
+  WARN nav             div#root > header.nav.nav--centre > div.wrap.nav__bar > button.nav__toggle
+       the nav is lopsided: its last item ends 13px inside the content's edge (772px), while its first starts on the other edge  [820-01-nav.jpg]
+       fix: start the nav's first item and end its last on the content's two edges
+  WARN cta             section#sorting  "Squirl sorts every row into a category. "
+       a section over 1.5 screens long with no link or button in it  [820-08-cta.jpg]
+       fix: add the action: a button in the hero, one on every priced item, one in the closing section
+  WARN section-gaps    section#months / section#faq
+       350px between these sections, +34% against the median 261px of gaps at a change of ground  [820-10-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN section-gaps    section#months / section#faq
+       uneven space at the edge of a band: 118px outside its edge, 232px inside it (the space on either side of a change of ground reads as one gap only when the two match)  [820-11-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN proximity       section#imports > div.wrap > div.grid.grid--top > div.frame.frame--split  "Reads your bank’s PDF statements Drop in"
+       stacked at this width, the visual starts 21px under the text and buttons above it ("Reads your bank’s PDF statemen"): it reads glued to them  [820-05-proximity.jpg]
+       fix: give the stacked split the section's own gap between text and visual (40px or more on a phone)
+  WARN label-centre    header.nav.nav--centre > div.wrap.nav__bar > div.nav__actions > a.btn.btn--primary  "Start your ledger"
+       its label sits 18px off-centre (25px of room at the left, 43px at the right) (and 1 more like it: "Start your ledger")  [820-02-label-centre.jpg]
+       fix: centre the label in its button, or fill the empty side with an icon
+  WARN button-contrast div.hero-text > div.hero__c > div.btn-row > a.btn.btn--secondary  "See the ledger"
+       the button "See the ledger" (#e6e5e1) stands only 1.20:1 off the ground around it: it reads as part of the ground, or as switched off  [820-03-button-contrast.jpg]
+       fix: give the button a fill that stands at least 1.5:1 off what is around it, or an outline in the ink
+  WARN empty-area      section#sorting  "Squirl sorts every row into a category. "
+       41% of the section is empty: 464px of empty rows between its content, 432px under its last (div.panel), in its 2168px of rows (WARN over 35%, FAIL over 50%)  [820-09-empty-area.jpg]
+       fix: fill the section: a picture or a second column beside the words, or more of its own content; the section stays one or two screens tall (T-height)
+  WARN empty-area      footer#contact  "Start with last month’s statement"
+       48% of the section is empty: 240px of empty rows between its content, 24% beside content that covers under half the container, in its 988px of rows (WARN over 35%, FAIL over 50%)  [820-13-empty-area.jpg]
+       fix: fill the section: a picture or a second column beside the words, or more of its own content; the section stays one or two screens tall (T-height)
+  WARN section-air     section#imports / section#sorting
+       489px of air between the content of these two sections: 128-480px (64-600px WARN) (SR-3)  [820-rhythm-01-section-air.jpg]
+       fix: keep 128-480px of air between the content of neighbouring sections (112-420px on a phone): the sections' padding (--padt, --padb)
+  WARN section-air     section#sorting  "Squirl sorts every row into a category. "
+       screen group 2 of this two-screen section fills 30.6% of a screen: 40% or more (25% WARN) (SR-3)  [820-rhythm-02-section-air.jpg]
+       fix: fill the section to 55%: more content, a picture or a background layer, or merge it into the section above as its last block
+
+768x1024  11 screens  2 FAIL  8 WARN
+  FAIL cut-text        div.app__pane.app__pane--list > ul.sq-months > li:nth-of-type(5) > span.sq-months__name  "November"
+       cut 14px at the bottom by the overflow of section#ledger > div.wrap > div.ui.app > div.app__pane.app__pane--list (and 1 more like it: "44 rows · ₹49,860")  [768-04-cut-text.jpg]
+       fix: give the text room: no overflow clipping a line, no line past its box
+  FAIL cut-text        footer#contact > div.wrap > div.closing__cta.close--word > p.close__word  "Squirl"
+       cut 21px at the top by the overflow of footer#contact > div.wrap > div.closing__cta.close--word > p.close__word  [768-07-cut-text.jpg]
+       fix: give the text room: no overflow clipping a line, no line past its box
+  WARN nav             div#root > header.nav.nav--centre > div.wrap.nav__bar > button.nav__toggle
+       the nav is lopsided: its last item ends 13px inside the content's edge (720px), while its first starts on the other edge  [768-01-nav.jpg]
+       fix: start the nav's first item and end its last on the content's two edges
+  WARN cta             section#sorting  "Squirl sorts every row into a category. "
+       a section over 1.5 screens long with no link or button in it  [768-06-cta.jpg]
+       fix: add the action: a button in the hero, one on every priced item, one in the closing section
+  WARN proximity       section#imports > div.wrap > div.grid.grid--top > div.frame.frame--split  "Reads your bank’s PDF statements Drop in"
+       stacked at this width, the visual starts 21px under the text and buttons above it ("Reads your bank’s PDF statemen"): it reads glued to them  [768-05-proximity.jpg]
+       fix: give the stacked split the section's own gap between text and visual (40px or more on a phone)
+  WARN label-centre    header.nav.nav--centre > div.wrap.nav__bar > div.nav__actions > a.btn.btn--primary  "Start your ledger"
+       its label sits 18px off-centre (25px of room at the left, 43px at the right) (and 1 more like it: "Start your ledger")  [768-02-label-centre.jpg]
+       fix: centre the label in its button, or fill the empty side with an icon
+  WARN button-contrast div.hero-text > div.hero__c > div.btn-row > a.btn.btn--secondary  "See the ledger"
+       the button "See the ledger" (#e6e5e1) stands only 1.20:1 off the ground around it: it reads as part of the ground, or as switched off  [768-03-button-contrast.jpg]
+       fix: give the button a fill that stands at least 1.5:1 off what is around it, or an outline in the ink
+  WARN section-height  section#faq  "QuestionsAbout banks, imports and where "
+       the section is 1027px tall (1 screens), 3px over one screen (1024px): every section after the hero is one screen or two, 2px either way (SR-2)  [768-rhythm-01-section-height.jpg]
+       fix: set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit
+  WARN section-height  footer#contact  "Start with last month’s statementCreate "
+       the section starts at 8195px, 3px below the screen grid (8 x 1024px): sections start on whole screens (SR-2)  [768-rhythm-02-section-height.jpg]
+       fix: make every section above it exactly one or two screens tall, so this one starts on a whole screen
+  WARN section-air     section#sorting  "Squirl sorts every row into a category. "
+       screen group 2 of this two-screen section fills 35.3% of a screen: 40% or more (25% WARN) (SR-3)  [768-rhythm-03-section-air.jpg]
+       fix: fill the section to 55%: more content, a picture or a background layer, or merge it into the section above as its last block
+
+390x844  15 screens  12 FAIL  9 WARN
+  FAIL cut-text        div.sq-main > div.sq-rows > div.sq-row:nth-of-type(5) > span.sq-row__what  "Swiggy"
+       cut 9px at the bottom by the overflow of section.hero.hero--centred > div.wrap > div.hero-text > div.hero__window (and 1 more like it: "−₹486")  [390-01-cut-text.jpg]
+       fix: give the text room: no overflow clipping a line, no line past its box
+  FAIL cut-text        div.app__pane.app__pane--open > div.sq-table > div.sq-tr:nth-of-type(10) > span:nth-of-type(2)  "Lent for the Goa trip"
+       cut 9px at the bottom by the overflow of section#ledger > div.wrap > div.ui.app > div.app__pane.app__pane--open (and 2 more like it: "Lent", "−₹4,000")  [390-05-cut-text.jpg]
+       fix: give the text room: no overflow clipping a line, no line past its box
+  FAIL cut-text        footer#contact > div.wrap > div.closing__cta.close--word > p.close__word  "Squirl"
+       cut 14px at the top by the overflow of footer#contact > div.wrap > div.closing__cta.close--word > p.close__word  [390-13-cut-text.jpg]
+       fix: give the text room: no overflow clipping a line, no line past its box
+  FAIL contrast        div.ui.sq-card-ui > ul.sq-catlist > li:nth-of-type(6) > span:nth-of-type(2)  "1 row"
+       body text over a effect reads at 3.8:1 at its worst tenth (needs 4.5:1)  [390-07-contrast.jpg]
+       fix: put the text on a calm part of the picture, or on a solid panel
+  FAIL section-gaps    section#months / section#faq
+       272px between these sections, +65% against the median 165px of gaps at a change of ground  [390-10-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN nav             div#root > header.nav.nav--centre > div.wrap.nav__bar > button.nav__toggle
+       the nav is lopsided: its last item ends 13px inside the content's edge (366px), while its first starts on the other edge  [390-02-nav.jpg]
+       fix: start the nav's first item and end its last on the content's two edges
+  WARN cta             section#sorting  "Squirl sorts every row into a category. "
+       a section over 1.5 screens long with no link or button in it  [390-08-cta.jpg]
+       fix: add the action: a button in the hero, one on every priced item, one in the closing section
+  WARN section-gaps    section#imports / section#sorting
+       187px between these sections, +32% against the median 142px  [390-06-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN section-gaps    section#months / section#faq
+       uneven space at the edge of a band: 94px outside its edge, 178px inside it (the space on either side of a change of ground reads as one gap only when the two match)  [390-11-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN label-centre    header.nav.nav--centre > div.wrap.nav__bar > div.nav__actions > a.btn.btn--primary  "Start your ledger"
+       its label sits 18px off-centre (13px of room at the left, 31px at the right)  [390-03-label-centre.jpg]
+       fix: centre the label in its button, or fill the empty side with an icon
+  WARN fade-cut        div.ui.sq-card-ui > ul.sq-catlist > li:nth-of-type(2) > span.sq-tag  "trip"
+       3 lines of div.ui.sq-card-ui fade out under its edge ("trip", "2 rows · ₹4,000", "₹4,000"): drawn at a fraction of #6b6862 on #ffffff, half-erased  [390-09-fade-cut.jpg]
+       fix: fit the mock's rows inside its panel (fewer rows, a taller panel), or end the fade below the last whole row: no row half-erased
+  WARN button-contrast div.hero-text > div.hero__c > div.btn-row > a.btn.btn--secondary  "See the ledger"
+       the button "See the ledger" (#e6e5e1) stands only 1.20:1 off the ground around it: it reads as part of the ground, or as switched off  [390-04-button-contrast.jpg]
+       fix: give the button a fill that stands at least 1.5:1 off what is around it, or an outline in the ink
+  WARN empty-area      section#faq  "Questions"
+       40% of the section is empty: 624px under its last (div.faq__item:nth-of-type(5)), in its 1544px of rows (WARN over 35%, FAIL over 50%)  [390-12-empty-area.jpg]
+       fix: fill the section: a picture or a second column beside the words, or more of its own content; the section stays one or two screens tall (T-height)
+  FAIL section-height  section#months  "Five kinds of money, kept apartSpent, ea"
+       the section is 1860px tall (2.2 screens), 172px over two screens (1688px): every section after the hero is one screen or two, 2px either way (SR-2)  [390-rhythm-01-section-height.jpg]
+       fix: set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit
+  FAIL section-height  section#faq  "QuestionsAbout banks, imports and where "
+       the section starts at 6924px, 172px below the screen grid (8 x 844px): sections start on whole screens (SR-2)  [390-rhythm-02-section-height.jpg]
+       fix: make every section above it exactly one or two screens tall, so this one starts on a whole screen
+  FAIL section-height  footer#contact  "Start with last month’s statementCreate "
+       the section starts at 8612px, 172px below the screen grid (10 x 844px): sections start on whole screens (SR-2)  [390-rhythm-03-section-height.jpg]
+       fix: make every section above it exactly one or two screens tall, so this one starts on a whole screen
+  FAIL section-height  section#months  "Five kinds of money, kept apartSpent, ea"
+       the section's content does not fit it: its first screen group ends 841px below its top, past 796px (SR-2)  [390-rhythm-04-section-height.jpg]
+       fix: fit the content above the section's bottom padding (--padb), or make it two screens (.g2) in two groups
+  WARN section-air     section#faq  "QuestionsAbout banks, imports and where "
+       the content fills 52.4% of the section's height (885 of 1688px): 55% or more (40% WARN) (SR-3)  [390-rhythm-08-section-air.jpg]
+       fix: fill the section to 55%: more content, a picture or a background layer, or merge it into the section above as its last block
+  FAIL one-section     section#months  "Five kinds of money, kept apartSpent, ea"
+       the screen at scroll 6752px (stride 8) shows 116px of section 6 beside section 7: a screen shows one section (another may peek 8px, 24px WARN) (SR-4)  [390-rhythm-05-one-section.jpg]
+       fix: make each section exactly one screen or two, so a screen shows one section and no neighbour peeks
+  FAIL one-section     section#faq  "QuestionsAbout banks, imports and where "
+       the screen at scroll 8440px (stride 10) shows 116px of section 7 beside section 8: a screen shows one section (another may peek 8px, 24px WARN) (SR-4)  [390-rhythm-06-one-section.jpg]
+       fix: make each section exactly one screen or two, so a screen shows one section and no neighbour peeks
+  FAIL container-edges div.wrap > div.hero-text > div.hero__c > a.pill  "Reads SBI and Kotak PDFsSee imports"
+       a box over half the container wide runs 64-326px, not on the container's lines at 24-366px (SR-6)  [390-rhythm-07-container-edges.jpg]
+       fix: run the picture or box from the container's left line to its right line, or put it in a row or a split
+
+first screen at 1280, 1152, 896  0 FAIL  0 WARN
+
+the page at 320x640, walked for what runs past the screen's edge  0 FAIL
+
+checks
+  PASS assets                 PASS shader-lint            PASS gl-fallback            
+  PASS empty-visual           PASS hero-fill              PASS flush                  
+  PASS placeholder            PASS sample-label           PASS caption                
+  PASS credit-wall            WARN nav                    PASS nav-covers             
+  PASS spill                  PASS off-viewport           PASS fold-card              
+  PASS hover-spill            PASS overlap-text           PASS collide                
+  PASS tap-size               PASS row-gap                FAIL cut-text               
+  PASS fold-cut               PASS marquee                PASS scroll-linked          
+  PASS scroll-reveal          PASS pinned                 PASS loop-pause             
+  PASS reduced-motion         PASS hidden-content         PASS webgl                  
+  PASS no-visual              PASS text-only              PASS card-visual            
+  PASS hidden-visual          PASS card-family            PASS card-layout            
+  PASS nesting                PASS effect-repeat          PASS ui-fit                 
+  PASS ui-centre              PASS dark-ground            PASS button-styles          
+  PASS button-shape           PASS same-action            PASS button-picture         
+  WARN cta                    PASS pricing-tiers          PASS copy-headline          
+  FAIL copy-fact              FAIL copy-headings          PASS copy-buttons           
+  PASS copy-actions           PASS heading-scale          PASS stagger                
+  PASS top-stagger            PASS off-grid               PASS col-edge               
+  PASS right-edge             PASS centre-axis            PASS tilt                   
+  FAIL contrast               PASS text-contrast          PASS body-size              
+  PASS busy-ground            FAIL section-gaps           WARN proximity              
+  FAIL hole                   PASS links                  PASS forms                  
+  PASS photo-upscale          PASS photo-set              PASS photo-credit           
+  PASS nav-family             WARN nav-labels             PASS link-styles            
+  PASS heading-align          WARN label-centre           PASS fake-button            
+  PASS stranded-action        PASS orphan                 PASS unit-break             
+  PASS tab-wrap               PASS effects-fit            WARN fade-cut               
+  PASS photo-weight           WARN copy-length            WARN nav-current            
+  PASS progress-bar           PASS photo-repeat           WARN button-contrast        
+  PASS photo-print            PASS grounds                PASS split-align            
+  PASS fact-agree             PASS fold-action            PASS action-count           
+  PASS one-screen             PASS hover                  PASS hover-move             
+  PASS product-shown          PASS same-object            PASS font-load              
+  PASS visual-caption         PASS visual-empty           PASS effect-kind            
+  PASS hero-enter             PASS moment-none            PASS street-number          
+  PASS postcode               PASS coordinates            PASS company-number         
+  PASS phone-number           PASS hero-screen            FAIL section-height         
+  WARN section-air            FAIL one-section            PASS one-heading            
+  FAIL container-edges        PASS row-lines              PASS split-pair             
+  PASS motion-layer           PASS count-text             PASS loop-cycle             
+  PASS section-tile           WARN empty-area             PASS a11y-name              
+  PASS img-alt                PASS field-label            PASS heading-order          
+  PASS tabindex               PASS focus-ring             PASS focus-visible          
+  PASS focus-hidden           PASS skip-link              PASS menu-toggle            
+  PASS lang                   PASS page-meta              WARN share-meta             
+  WARN action-repeat          PASS map-link               PASS open-now               
+  PASS assumed                PASS run-on                 PASS form-fields            
+  PASS form-send              
+
+total  25 FAIL  48 WARN  (crops and report.json in /var/folders/ch/556t1zn50l92kfd6vk4lgf7c0000gn/T/taste-skill-consistency/localhost-5173)

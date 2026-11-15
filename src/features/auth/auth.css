@@ -1,44 +1,166 @@
+/*
+ * Sign in, sign up and the password pages: the landing's dark ground and 3D scene, with the form
+ * on a sheet of paper at the left. The sheet is always light, whatever the app's theme, so the
+ * light tokens are restated here for everything inside these pages.
+ */
 .auth {
+  --paper: #faf9f5;
+  --stone: #f0eee6;
+  --stone-strong: #e6e2d6;
+  --line: #e1ddd1;
+  --ink: #1f1e1d;
+  --ink-soft: #5e5b55;
+  --ink-faint: #8a867e;
+  --clay: #cc785c;
+  --clay-ink: #a5543a;
+  --olive: #788c5d;
+  --focus: #3c6c9b;
+  --auth-ground: #16130f;
+  --auth-font: 'Instrument Sans', var(--font-sans);
+
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
+  min-height: 100svh;
   display: grid;
   grid-template-rows: auto 1fr;
+  background: var(--auth-ground);
+  color: #faf9f5;
+  font-family: var(--auth-font);
+  color-scheme: light;
+}
+
+/* the scene fills the page behind the form; without WebGL (or with reduced motion) the drive's
+   clay glow stands in for it */
+.auth__stage {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(40% 50% at 70% 52%, rgb(165 84 58 / 0.42), transparent 70%),
+    radial-gradient(18% 22% at 64% 50%, rgb(159 212 255 / 0.22), transparent 70%),
+    var(--auth-ground);
+}
+
+.auth__scene {
+  position: absolute;
+  inset: 0;
+}
+
+.auth__scene > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* a shade under the form's side, so the sheet's edge and the logo stay crisp over the model */
+.auth__stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgb(15 13 11 / 0.86) 0, rgb(15 13 11 / 0.5) 32%, transparent 58%);
+}
+
+/* the line of words for each beat of the scene: lower right, clear of the model's middle */
+.auth__caption {
+  position: fixed;
+  right: clamp(20px, 5.5vw, 80px);
+  bottom: clamp(28px, 7vh, 72px);
+  z-index: 0;
+  display: grid;
+  justify-items: end;
+  gap: 14px;
+  max-width: min(46vw, 560px);
+  margin: 0;
+  color: #faf9f5;
+  font-size: clamp(1.5rem, 2.6vw, 2.4rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  text-align: right;
+  text-wrap: balance;
+  pointer-events: none;
+}
+
+.auth__caption > span:first-child {
+  animation: auth-line 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes auth-line {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(6px);
+  }
+}
+
+.auth__caption-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.auth__caption-dots i {
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgb(250 249 245 / 0.25);
+  transition: background-color 0.4s ease;
+}
+
+.auth__caption-dots i[data-on] {
+  background: #e09a7f;
 }
 
 .auth__nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 14px var(--gutter);
+  padding: 22px clamp(20px, 5.5vw, 80px);
+}
+
+.auth__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #faf9f5;
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-decoration: none;
 }
 
 .auth__main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
   align-items: center;
-  gap: clamp(32px, 6vw, 96px);
-  width: 100%;
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 24px var(--gutter) 72px;
-}
-
-.auth__art {
-  justify-self: center;
-  opacity: 0.9;
+  justify-items: start;
+  padding: 16px clamp(20px, 5.5vw, 80px) 72px;
 }
 
 .auth__card {
+  width: min(420px, 100%);
   display: grid;
   gap: 18px;
-  padding: clamp(24px, 4vw, 40px);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  padding: clamp(24px, 3vw, 36px);
+  border-radius: 14px;
   background: var(--paper);
-  box-shadow: var(--shadow-soft);
+  color: var(--ink);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.06), 0 30px 80px -30px rgb(0 0 0 / 0.7);
+  animation: auth-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
 }
 
 .auth__card h1 {
-  font-size: var(--text-2xl);
+  font-family: var(--auth-font);
+  font-size: clamp(1.7rem, 2.4vw, 2.1rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.06;
 }
 
 .auth__intro {
@@ -52,9 +174,41 @@
   gap: 16px;
 }
 
-.auth__form .btn {
-  justify-self: stretch;
+.auth .input {
   min-height: 44px;
+  font-size: 1rem; /* 16px: phones do not zoom the page on focus */
+}
+
+/* the one action takes the landing's clay */
+.auth .btn {
+  font-family: var(--auth-font);
+}
+
+.auth__form .btn,
+.auth__card > .btn {
+  justify-self: stretch;
+  min-height: 46px;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.auth .btn--primary {
+  background: var(--clay-ink);
+  color: #faf9f5;
+}
+
+.auth .btn--primary:hover:not(:disabled) {
+  background: #8f4630;
+}
+
+.auth a {
+  color: var(--clay-ink);
+  text-underline-offset: 3px;
+}
+
+.auth a.btn--primary,
+.auth a.auth__logo {
+  color: #faf9f5;
 }
 
 .auth__password {
@@ -71,7 +225,7 @@
   top: 50%;
   right: 6px;
   transform: translateY(-50%);
-  min-height: 30px;
+  min-height: 32px;
   padding: 0 10px;
   border: 0;
   border-radius: var(--radius-sm);
@@ -95,7 +249,14 @@
 .auth__aside {
   justify-self: end;
   margin-top: -8px;
-  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+.auth .import-error {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--clay) 14%, transparent);
+  color: var(--clay-ink);
   font-size: var(--text-sm);
 }
 
@@ -116,8 +277,9 @@
 }
 
 .auth__done-title {
-  font-family: var(--font-serif);
+  font-family: var(--auth-font);
   font-size: var(--text-lg);
+  font-weight: 500;
 }
 
 .auth-fatal {
@@ -125,13 +287,41 @@
   color: var(--clay-ink);
 }
 
-@media (max-width: 760px) {
-  .auth__main {
-    grid-template-columns: 1fr;
-    padding-top: 8px;
+/* narrower screens: the scene is a band at the top, the sheet under it */
+@media (max-width: 899px) {
+  .auth__stage {
+    position: absolute;
+    height: 46svh;
   }
 
-  .auth__art {
-    display: none;
+  .auth__stage::after {
+    background: linear-gradient(to top, var(--auth-ground) 0, rgb(22 19 15 / 0.2) 45%, transparent 70%);
+  }
+
+  /* under the logo, over the top of the scene's band */
+  .auth__caption {
+    position: absolute;
+    top: 70px;
+    right: auto;
+    bottom: auto;
+    left: clamp(20px, 5.5vw, 80px);
+    justify-items: start;
+    max-width: 70vw;
+    font-size: 1.25rem;
+    text-align: left;
+  }
+
+  .auth__main {
+    align-items: end;
+    justify-items: center;
+    padding-top: 26svh;
+    padding-bottom: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth__card,
+  .auth__caption > span:first-child {
+    animation: none;
   }
 }

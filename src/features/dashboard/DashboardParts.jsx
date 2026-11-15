@@ -13,6 +13,7 @@ import { MONEY_TYPES, monthFigures } from '../../lib/moneyTypes';
 import '../../components/layout/layout.css';
 import '../insights/insights.css';
 import './dashboard.css';
+import { financePath } from '../../app/paths';
 
 const money = (n) => formatMoney(Math.round(n), { rounded: true });
 const STALE_DAYS = 35; // a monthly statement is overdue after this
@@ -89,7 +90,7 @@ export function Attention({ accounts, unsorted }) {
       items.push({
         key: `${a.account}-${gap.from}`,
         text: `${formatAccount(a.account)} is missing transactions between ${formatDate(gap.from)} and ${formatDate(gap.to)}, so its balance doesn’t add up there. Import a statement that covers those dates.`,
-        to: '/app/imports',
+        to: financePath('imports'),
         action: 'Import',
       });
     }
@@ -98,7 +99,7 @@ export function Attention({ accounts, unsorted }) {
       items.push({
         key: `${a.account}-stale`,
         text: `${formatAccount(a.account)} is only up to date to ${formatDate(a.asOf)} (${age} days ago).`,
-        to: '/app/imports',
+        to: financePath('imports'),
         action: 'Import a newer statement',
       });
     }
@@ -107,7 +108,7 @@ export function Attention({ accounts, unsorted }) {
     items.push({
       key: 'unsorted',
       text: `${unsorted} row${unsorted === 1 ? ' is' : 's are'} waiting for a category across all dates and accounts, so spending by category isn’t complete yet.`,
-      to: '/app/sort-out',
+      to: financePath('sort-out'),
       action: 'Sort them',
     });
   }
@@ -199,7 +200,7 @@ export function MonthStatsView({ month, now, before }) {
     <section className="dash-section dash-section--wide" aria-labelledby="month-title">
       <div className="dash-section__head">
         <h2 id="month-title">{formatMonth(month)}</h2>
-        <Link to={`/app/highlights?month=${month}`} className="dash-link">
+        <Link to={financePath('highlights', `?month=${month}`)} className="dash-link">
           Month in detail <ArrowRight size={14} aria-hidden="true" />
         </Link>
       </div>
@@ -253,7 +254,7 @@ export function WhereItWentView({ month, data, preview = false }) {
         <ol className="spend-bars spend-bars--compact">
           {rows.map((row) => (
             <li key={row.key ?? 'none'}>
-              <Link to={`/app/ledger?month=${month}&category=${row.key ?? 'none'}`} className="spend-bar" title={`${row.count} transaction${row.count === 1 ? '' : 's'}`}>
+              <Link to={financePath('ledger', `?month=${month}&category=${row.key ?? 'none'}`)} className="spend-bar" title={`${row.count} transaction${row.count === 1 ? '' : 's'}`}>
                 <span className="spend-bar__label">
                   {row.key === null || preview ? <Question size={18} weight="duotone" aria-hidden="true" /> : <CategoryIcon id={row.key} />}
                   <span>{row.key === null ? 'Not sorted yet' : row.label}</span>
@@ -276,7 +277,7 @@ export function Recent({ rows }) {
     <section className="dash-section" aria-labelledby="recent-title">
       <div className="dash-section__head">
         <h2 id="recent-title">Latest rows</h2>
-        <Link to="/app/ledger" className="dash-link">
+        <Link to={financePath('ledger')} className="dash-link">
           Ledger <ArrowRight size={14} aria-hidden="true" />
         </Link>
       </div>
@@ -317,7 +318,7 @@ export function ComingUpView({ data }) {
     <section className="dash-section" aria-labelledby="coming-title">
       <div className="dash-section__head">
         <h2 id="coming-title">Coming up</h2>
-        <Link to="/app/payments" className="dash-link">
+        <Link to={financePath('payments')} className="dash-link">
           EMIs &amp; bills <ArrowRight size={14} aria-hidden="true" />
         </Link>
       </div>
@@ -354,10 +355,10 @@ export function Welcome() {
         <h2>Nothing here yet</h2>
         <p>Import a bank statement and this page fills with your balances, what came in and went out, and where it went.</p>
         <div className="dash-welcome__actions">
-          <Link to="/app/imports" className="btn btn--accent">
+          <Link to={financePath('imports')} className="btn btn--accent">
             Import a statement
           </Link>
-          <Link to="/app/ledger" className="btn btn--quiet">
+          <Link to={financePath('ledger')} className="btn btn--quiet">
             Add a row by hand
           </Link>
         </div>

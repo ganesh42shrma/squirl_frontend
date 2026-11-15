@@ -1,0 +1,155 @@
+/*
+ * The "System window" look, used inside the Tasks module, its dashboard widgets and the toasts.
+ * The windows stay dark in both themes on purpose (they are a window onto the System); body text
+ * on them is #d8f3ff on a near-black navy, well above 4.5:1. Everything else in Tasks uses the
+ * normal Squirl tokens, so light and dark themes both work.
+ */
+:root {
+  --sys-bg: rgba(8, 14, 30, 0.94);
+  --sys-bg-solid: #080e1e;
+  --sys-ink: #d8f3ff;
+  --sys-soft: #93b7ca;
+  --sys-line: #3ad4ff;
+  --sys-glow: rgba(58, 212, 255, 0.35);
+  --sys-red: #ff6b7a;
+  --sys-gold: #fde047;
+  --sys-violet: #b49bff;
+  --rank-e: #8a94a6;
+  --rank-d: #3ddc84;
+  --rank-c: #38bdf8;
+  --rank-b: #a78bfa;
+  --rank-a: #f59e0b;
+  --rank-s: #fde047;
+  --rank-n: #ef4444;
+  --rank-x: #c4a1ff;
+  --font-system: 'Oxanium', 'Rajdhani', 'Barlow Condensed', 'Arial Narrow', var(--font-sans);
+}
+
+.sys-window {
+  --tone: var(--sys-line);
+  position: relative;
+  padding: 16px 18px 18px;
+  border: 1px solid color-mix(in srgb, var(--tone) 70%, transparent);
+  border-radius: 4px;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 3px),
+    var(--sys-bg);
+  color: var(--sys-ink);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--tone) 22%, transparent),
+    0 0 18px color-mix(in srgb, var(--tone) 32%, transparent),
+    inset 0 0 24px color-mix(in srgb, var(--tone) 8%, transparent);
+}
+
+.sys-window[data-tone='red'] { --tone: var(--sys-red); }
+.sys-window[data-tone='gold'] { --tone: var(--sys-gold); }
+.sys-window[data-tone='violet'] { --tone: var(--sys-violet); }
+.sys-window[data-tone='muted'] { --tone: #6b8799; }
+
+/* Corner brackets. */
+.sys-window::before,
+.sys-window::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--tone);
+  pointer-events: none;
+}
+.sys-window::before { top: -3px; left: -3px; border-right: 0; border-bottom: 0; }
+.sys-window::after { right: -3px; bottom: -3px; border-left: 0; border-top: 0; }
+
+.sys-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-bottom: 12px;
+}
+
+.sys-title {
+  margin: 0;
+  font-family: var(--font-system);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tone);
+}
+
+.sys-window p,
+.sys-window li { color: var(--sys-ink); }
+.sys-muted { color: var(--sys-soft) !important; }
+.sys-num { font-family: var(--font-system); font-variant-numeric: tabular-nums; }
+
+.sys-window .btn { border-color: color-mix(in srgb, var(--tone) 55%, transparent); color: var(--sys-ink); background: transparent; }
+.sys-window .btn:hover:not(:disabled) { background: color-mix(in srgb, var(--tone) 18%, transparent); }
+.sys-window .btn--accent { background: color-mix(in srgb, var(--tone) 85%, #000); color: #04101c; border-color: transparent; }
+.sys-window .btn--accent:hover:not(:disabled) { background: var(--tone); }
+.sys-window :focus-visible { outline-color: var(--tone); }
+.sys-window .link-button { color: var(--tone); }
+
+/* XP bar with a slow sheen. */
+.sys-xp { display: grid; gap: 6px; }
+.sys-xp__track { position: relative; height: 8px; overflow: hidden; border-radius: 2px; background: rgba(255, 255, 255, 0.1); }
+.sys-xp__fill { position: relative; display: block; height: 100%; border-radius: 2px; background: linear-gradient(90deg, #1fa8d8, var(--sys-line)); box-shadow: 0 0 10px var(--sys-glow); transition: width 0.6s cubic-bezier(0.2, 0.9, 0.3, 1); }
+.sys-xp__fill::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.5) 50%, transparent 70%); transform: translateX(-100%); animation: sys-sheen 4s ease-in-out infinite; }
+.sys-xp__label { display: flex; justify-content: space-between; gap: 12px; font-size: var(--text-xs); color: var(--sys-soft); }
+@keyframes sys-sheen { 60%, 100% { transform: translateX(100%); } }
+
+/* Rank badge: a hexagon in the rank colour; S and above glow. */
+.rank-badge {
+  --rc: var(--rank-e);
+  display: inline-grid;
+  place-items: center;
+  width: var(--size, 56px);
+  height: calc(var(--size, 56px) * 1.1);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  background: var(--rc);
+  color: #04101c;
+  font-family: var(--font-system);
+  font-weight: 800;
+  font-size: calc(var(--size, 56px) * 0.42);
+  line-height: 1;
+}
+.rank-badge__inner { display: grid; place-items: center; width: 82%; height: 82%; clip-path: inherit; background: var(--sys-bg-solid); color: var(--rc); }
+.rank-badge[data-rank='D'] { --rc: var(--rank-d); }
+.rank-badge[data-rank='C'] { --rc: var(--rank-c); }
+.rank-badge[data-rank='B'] { --rc: var(--rank-b); }
+.rank-badge[data-rank='A'] { --rc: var(--rank-a); }
+.rank-badge[data-rank='S'] { --rc: var(--rank-s); }
+.rank-badge[data-rank='N'] { --rc: var(--rank-n); }
+.rank-badge[data-rank='X'] { --rc: var(--rank-x); background: linear-gradient(135deg, #8b5cf6, #22d3ee); }
+.rank-badge-wrap { display: inline-flex; filter: drop-shadow(0 0 0 transparent); }
+.rank-badge-wrap[data-glow] { filter: drop-shadow(0 0 7px var(--rc-glow, rgba(253, 224, 71, 0.7))); animation: rank-glow 2.8s ease-in-out infinite; }
+.rank-badge-wrap[data-rank='N'] { --rc-glow: rgba(239, 68, 68, 0.7); }
+.rank-badge-wrap[data-rank='X'] { --rc-glow: rgba(139, 92, 246, 0.75); }
+@keyframes rank-glow { 50% { filter: drop-shadow(0 0 12px var(--rc-glow, rgba(253, 224, 71, 0.9))); } }
+
+/* Difficulty badge on task rows: normal Squirl surfaces, letter rank coloured like the ladder. */
+.diff-badge { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px 1px 3px; border: 1px solid var(--line); border-radius: 999px; font-size: var(--text-xs); color: var(--ink-soft); white-space: nowrap; }
+.diff-badge__letter { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--rank-e); color: #04101c; font-family: var(--font-system); font-weight: 800; font-size: 11px; }
+.diff-badge[data-badge='D'] .diff-badge__letter { background: var(--rank-d); }
+.diff-badge[data-badge='C'] .diff-badge__letter { background: var(--rank-c); }
+.diff-badge[data-badge='B'] .diff-badge__letter { background: var(--rank-b); }
+.diff-badge[data-badge='A'] .diff-badge__letter { background: var(--rank-a); }
+.diff-badge[data-badge='S'] .diff-badge__letter { background: var(--rank-s); }
+
+/* Toasts: System windows stacked top-centre. */
+.sys-toasts { position: fixed; top: 16px; left: 50%; z-index: 70; display: grid; gap: 10px; width: min(440px, calc(100vw - 24px)); transform: translateX(-50%); pointer-events: none; }
+.sys-toast { pointer-events: auto; cursor: pointer; padding: 11px 16px 12px; transform-origin: 50% 0; }
+.sys-toast .sys-title { font-size: var(--text-xs); }
+.sys-toast p { margin-top: 2px; font-size: var(--text-sm); }
+.sys-toast--level, .sys-toast--rank { padding: 14px 18px 16px; }
+
+/* Level-up / rank-up: a centred window. */
+.sys-moment { position: fixed; inset: 0; z-index: 75; display: grid; place-items: center; padding: 20px; background: rgba(3, 7, 16, 0.55); backdrop-filter: blur(2px); cursor: pointer; }
+.sys-moment__window { display: grid; justify-items: center; gap: 10px; width: min(380px, 100%); padding: 28px 26px 30px; text-align: center; cursor: default; }
+.sys-moment__level { margin: 0; font-family: var(--font-system); font-size: clamp(2.6rem, 8vw, 3.6rem); font-weight: 800; line-height: 1; color: var(--tone); }
+.sys-moment__hint { font-size: var(--text-xs); color: var(--sys-soft) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sys-xp__fill::after, .rank-badge-wrap[data-glow] { animation: none; }
+  .sys-xp__fill { transition: none; }
+}

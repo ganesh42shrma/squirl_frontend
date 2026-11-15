@@ -101,6 +101,9 @@
   gap: 16px;
 }
 
+.notification-options { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.notification-options label { display: flex; align-items: center; gap: 8px; }
+
 .profile-form__actions {
   display: flex;
   flex-wrap: wrap;

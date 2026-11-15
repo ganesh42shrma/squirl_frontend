@@ -7,6 +7,7 @@ import { Suggestions } from './Suggestions';
 import { LearnedMerchants } from './LearnedMerchants';
 import '../../components/layout/layout.css';
 import './sortout.css';
+import { financePath } from '../../app/paths';
 
 function UnsortedPrompt() {
   const { data: count = 0, isLoading, isError } = useUnsortedCount();
@@ -31,7 +32,7 @@ function UnsortedPrompt() {
           {count === 1 ? 'row' : 'rows'} to categorize
         </p>
       </div>
-      <Link to="/app/ledger?view=unsorted" className="btn btn--accent">
+      <Link to={financePath('ledger', '?view=unsorted')} className="btn btn--accent">
         View rows
       </Link>
       <div className="unsorted__suggest">

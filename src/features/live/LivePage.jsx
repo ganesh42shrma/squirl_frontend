@@ -464,7 +464,7 @@ export function LivePage() {
   return (
     <div className="live">
       <header className="page-head">
-        <h1>Live</h1>
+        <h1>Daily Scoop</h1>
         <p>Weather, inflation, exchange rates, fund NAVs, crypto and news from free, trusted public sources.</p>
       </header>
       {settings.isLoading ? (

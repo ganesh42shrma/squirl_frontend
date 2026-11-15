@@ -3,22 +3,15 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { Logo } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
 import { GuestModeToggle } from './GuestModeToggle';
+import { ModuleLauncher } from './ModuleLauncher';
 import { useGuestMode } from '../../lib/useGuestMode';
 import { BackgroundNotices } from './BackgroundNotices';
+import { QuoteFooter } from './QuoteFooter';
+import { SystemToasts } from '../../features/tasks/SystemToasts';
 import { useLogout, useMe } from '../../features/auth/useAuth';
+import { DASHBOARD_PATH, PROFILE_PATH, tabForPath } from '../../app/modules';
 import './layout.css';
 import '../../features/profile/profile.css';
-
-const NAV = [
-  { to: '/app', label: 'Dashboard', end: true },
-  { to: '/app/ledger', label: 'Ledger' },
-  { to: '/app/highlights', label: 'Highlights' },
-  { to: '/app/payments', label: 'EMIs & bills' },
-  { to: '/app/goals', label: 'Goals' },
-  { to: '/app/live', label: 'Live' },
-  { to: '/app/imports', label: 'Imports' },
-  { to: '/app/sort-out', label: 'Sort out' },
-];
 
 const initialsOf = (name = '') =>
   name
@@ -56,7 +49,7 @@ function AccountMenu() {
           {me.name}
           <span>{me.email}</span>
         </p>
-        <Link to="/app/profile" className="account-menu__item">
+        <Link to={PROFILE_PATH} className="account-menu__item">
           Profile
         </Link>
         <button
@@ -71,29 +64,57 @@ function AccountMenu() {
   );
 }
 
+// The second header row: the current module's pages. Imports and Sort out sit after a divider.
+function SubTabs({ module }) {
+  const ref = useRef(null);
+  const { pathname } = useLocation();
+  // Keep the active tab in view on narrow screens.
+  useEffect(() => {
+    ref.current?.querySelector('[aria-current="page"]')?.scrollIntoView?.({ inline: 'nearest', block: 'nearest' });
+  }, [pathname]);
+  return (
+    <nav className="shell__tabs" aria-label={`${module.label} sections`} ref={ref}>
+      {module.tabs.map((tab, index) => (
+        <span key={tab.path} className="shell__tab-wrap">
+          {tab.group && module.tabs[index - 1]?.group !== tab.group && <span className="shell__tab-divider" role="separator" aria-orientation="vertical" />}
+          <NavLink to={`${module.base}/${tab.path}`} className="shell__link shell__link--tab">
+            {tab.label}
+          </NavLink>
+        </span>
+      ))}
+    </nav>
+  );
+}
+
 export function AppShell() {
   const { guestMode } = useGuestMode();
+  const { pathname } = useLocation();
+  const { module } = tabForPath(pathname);
   return (
     <div className="shell">
       <header className="shell__header">
-        <Logo to="/app" />
-        <nav className="shell__nav" aria-label="Main">
-          {NAV.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.end} className="shell__link">
-              {item.label}
+        <div className="shell__bar">
+          <Logo to={DASHBOARD_PATH} />
+          <nav className="shell__nav" aria-label="Main">
+            <NavLink to={DASHBOARD_PATH} end className="shell__link shell__link--dash">
+              Dashboard
             </NavLink>
-          ))}
-        </nav>
-        <GuestModeToggle />
-        <ThemeToggle />
-        <AccountMenu />
+            <ModuleLauncher module={module} />
+          </nav>
+          <GuestModeToggle />
+          <ThemeToggle />
+          <AccountMenu />
+        </div>
+        {module && module.tabs.length > 1 && <SubTabs module={module} />}
       </header>
       {/* Rebuild views and close open editors when privacy changes, including memoized
           ledger rows and animated figures, so no previous amount stays on screen. */}
       <main className="shell__main" key={guestMode ? 'guest' : 'private'}>
         <Outlet />
       </main>
+      <QuoteFooter />
       <BackgroundNotices />
+      <SystemToasts />
     </div>
   );
 }

@@ -19,6 +19,7 @@ export function LoginPage() {
 
   return (
     <AuthLayout
+      scene="signin"
       title="Welcome back"
       intro="Sign in to your ledger."
       footer={

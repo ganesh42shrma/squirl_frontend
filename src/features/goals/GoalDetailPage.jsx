@@ -19,6 +19,7 @@ import {
 import '../../components/layout/layout.css';
 import '../commitments/commitments.css';
 import './goals.css';
+import { financePath } from '../../app/paths';
 
 const whole = (n) => (n == null ? '—' : formatMoney(Math.round(n), { rounded: true }));
 const SOURCE_LABELS = { manual: 'Added by you', transaction: 'Linked', auto_debit: 'Auto-debit', account: 'Watched account' };
@@ -213,7 +214,7 @@ export function GoalDetailPage() {
 
   return (
     <div className="commitments goals goal-detail">
-      <Link to="/app/goals" className="goal-back">
+      <Link to={financePath('goals')} className="goal-back">
         <ArrowLeft size={14} aria-hidden="true" /> All goals
       </Link>
       <header className="page-head cm-head">
@@ -301,7 +302,7 @@ export function GoalDetailPage() {
           variant={confirmDelete ? 'danger' : 'quiet'}
           disabled={guest || remove.isPending}
           onBlur={() => setConfirmDelete(false)}
-          onClick={() => (confirmDelete ? remove.mutate(goal._id, { onSuccess: () => (toast(`Deleted ${goal.name}`), navigate('/app/goals')) }) : setConfirmDelete(true))}
+          onClick={() => (confirmDelete ? remove.mutate(goal._id, { onSuccess: () => (toast(`Deleted ${goal.name}`), navigate(financePath('goals'))) }) : setConfirmDelete(true))}
         >
           {confirmDelete ? 'Confirm delete' : 'Delete goal'}
         </Button>

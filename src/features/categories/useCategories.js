@@ -46,6 +46,7 @@ function useCategoryMutation(mutationFn) {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['summary'] });
+      queryClient.invalidateQueries({ queryKey: ['commitments'] });
     },
   });
 }

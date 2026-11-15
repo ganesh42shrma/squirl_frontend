@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
 import { describeError } from '../../api/client';
 import { useApplyRules, useDeleteRule, useRules } from '../rules/useRules';
+import { financePath } from '../../app/paths';
 
 /**
  * Merchant memory: every merchant you've categorised (on imported rows) and the category it maps to.
@@ -79,7 +80,7 @@ export function LearnedMerchants() {
               {showAll ? 'Show fewer' : `Show all ${rules.length}`}
             </button>
           )}
-          <Link to="/app/ledger?view=auto" className="dash-link">
+          <Link to={financePath('ledger', '?view=auto')} className="dash-link">
             Review rows sorted automatically
           </Link>
         </>

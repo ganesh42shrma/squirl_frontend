@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, SIGNED_OUT_EVENT } from '../../api/client';
+import { clearBrowserPush } from '../../pwa/client';
 
 const ME = ['me'];
 
@@ -36,8 +37,16 @@ function useSession(mutationFn) {
 export const useLogin = () => useSession((body) => api('/auth/login', { method: 'POST', body }).then((r) => r.data));
 export const useRegister = () => useSession((body) => api('/auth/register', { method: 'POST', body }).then((r) => r.data));
 export const useResetPassword = () => useSession((body) => api('/auth/password/reset', { method: 'POST', body }).then((r) => r.data));
-export const useLogout = () => useSession(() => api('/auth/logout', { method: 'POST' }).then(() => null));
-export const useDeleteAccount = () => useSession((body) => api('/users/me', { method: 'DELETE', body }).then(() => null));
+export const useLogout = () => useSession(async () => {
+  await api('/auth/logout', { method: 'POST' });
+  await clearBrowserPush().catch(() => {});
+  return null;
+});
+export const useDeleteAccount = () => useSession(async (body) => {
+  await api('/users/me', { method: 'DELETE', body });
+  await clearBrowserPush().catch(() => {});
+  return null;
+});
 
 export const useForgotPassword = () =>
   useMutation({ mutationFn: (body) => api('/auth/password/forgot', { method: 'POST', body }).then((r) => r.message) });
@@ -68,7 +77,7 @@ export function useUpdateProfile() {
     onSuccess: (profile) => {
       queryClient.setQueryData(['profile'], profile);
       queryClient.setQueryData(ME, (me) => (me ? { ...me, name: profile.name, email: profile.email } : me));
-      ['transactions', 'summary', 'insights', 'rules', 'categories', 'family-sync'].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
+      ['transactions', 'summary', 'insights', 'rules', 'categories', 'family-sync', 'commitments', 'goals'].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
     },
   });
 }
@@ -82,7 +91,7 @@ export function useAddFamilyMember() {
     mutationFn: (body) => api('/users/me/family-contacts', { method: 'POST', body }).then((r) => r.data),
     onSuccess: (profile) => {
       queryClient.setQueryData(['profile'], profile);
-      ['transactions', 'summary', 'insights', 'rules', 'categories', 'family-sync'].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
+      ['transactions', 'summary', 'insights', 'rules', 'categories', 'family-sync', 'commitments', 'goals'].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
     },
   });
 }
@@ -117,6 +126,6 @@ export function useWatchFamilySync() {
   useEffect(() => {
     if (data?.status !== 'completed' || completed.current === data.revision) return;
     completed.current = data.revision;
-    ['transactions', 'summary', 'insights', 'rules', 'tags'].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
+    ['transactions', 'summary', 'insights', 'rules', 'tags', 'commitments', 'goals'].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
   }, [data, queryClient]);
 }

@@ -14,7 +14,9 @@ import { FamilyContacts } from './FamilyContacts';
 import { ResetFinancialData } from './ResetFinancialData';
 import { AiSettings } from './AiSettings';
 import { DataSources } from './DataSources';
+import { DeviceNotifications } from './DeviceNotifications';
 import '../commitments/commitments.css';
+import { CUSTOMIZE_DASHBOARD_PATH } from '../../app/paths';
 
 function Details({ profile }) {
   const update = useUpdateProfile();
@@ -232,9 +234,10 @@ export function ProfilePage() {
       </dl>
 
       <Details profile={profile} />
+      <DeviceNotifications />
       <section className="profile-section" aria-labelledby="dashboard-title">
         <div className="profile-section__head"><h2 id="dashboard-title">Dashboard</h2><p>Choose widgets and data.</p></div>
-        <div><Link className="btn btn--quiet" to="/app/profile/dashboard">Configure dashboard</Link></div>
+        <div><Link className="btn btn--quiet" to={CUSTOMIZE_DASHBOARD_PATH}>Configure dashboard</Link></div>
       </section>
       <FamilyContacts profile={profile} />
       <ChangePassword />

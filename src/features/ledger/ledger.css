@@ -30,18 +30,6 @@
   color: var(--ink-soft);
 }
 
-.link-button {
-  border: 0;
-  padding: 0;
-  background: none;
-  color: var(--ink);
-  font-size: inherit;
-  text-decoration: underline;
-  text-decoration-color: var(--clay);
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
-
 /* ── Filters ───────────────────────────────────────── */
 .ledger__filters {
   display: flex;
@@ -195,9 +183,8 @@
 }
 
 .ledger-description__text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .ledger-description__meta {
@@ -447,10 +434,10 @@
 .transaction-note-input { resize: vertical; min-height: 112px; line-height: 1.5; }
 .transaction-note-remove { margin-right: auto; }
 
-/* Fixed row rhythm: no wrapped badges, notes, tags or action labels. */
+/* Full bank descriptions grow the row; badges, notes, tags and actions stay compact. */
 .ledger-table-scroll { overflow-x: auto; }
 .ledger-table { min-width: 920px; }
-.ledger-row:not(.ledger-row--head) { height: 52px; min-height: 52px; padding: 5px 8px; }
+.ledger-row:not(.ledger-row--head) { min-height: 52px; padding: 5px 8px; }
 .ledger-cell--description { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
 .ledger-row--head .ledger-cell--description { display: block; }
 .ledger-description { min-width: 0; gap: 2px; line-height: 1.25; }
@@ -470,3 +457,39 @@
 .ledger-pagination__pages button:hover:not(:disabled) { background: var(--stone); color: var(--ink); }
 .ledger-pagination__pages button:disabled { opacity: 0.35; cursor: default; }
 .ledger-pagination__pages button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* ── Filter bar, applied chips, numbered pagination ── */
+.ledger-filters { display: grid; gap: 10px; margin-bottom: 16px; }
+.ledger-filters .ledger__filters { margin-bottom: 0; }
+.ledger-search { position: relative; display: flex; align-items: center; flex: 1 1 320px; max-width: 480px; min-width: 0; }
+.ledger-search .ledger__search { flex: 1; max-width: none; padding-left: 36px; padding-right: 150px; }
+.ledger-search__icon { position: absolute; left: 12px; color: var(--ink-faint); pointer-events: none; }
+.ledger-search__scope { position: absolute; right: 4px; width: 138px; min-height: 32px; padding: 3px 24px 3px 9px; border-color: transparent; background-color: var(--stone); font-size: var(--text-xs); }
+.filter-form, .filter-radios { display: grid; gap: 10px; }
+.filter-radios { margin: 0; padding: 0; border: 0; min-width: 0; }
+.filter-radios legend { padding: 0 0 6px; font-size: var(--text-sm); font-weight: 600; }
+.filter-list { display: grid; gap: 8px; max-height: 190px; overflow-y: auto; padding-right: 4px; }
+.filter-list .check-row { align-items: flex-start; }
+.filter-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.filter-money { display: flex; align-items: center; gap: 6px; }
+.filter-money .input { min-width: 0; }
+.filter-quick { justify-self: start; flex-wrap: wrap; border-radius: var(--radius); }
+.filter-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ledger-applied { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; }
+.ledger-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.filter-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--stone); font-size: var(--text-sm); }
+.filter-chip__name { color: var(--ink-soft); }
+.filter-chip button { display: grid; place-items: center; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink-soft); cursor: pointer; }
+.filter-chip button:hover { background: var(--stone-strong); color: var(--ink); }
+.ledger-applied__count { margin-left: auto; font-size: var(--text-sm); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.ledger-pagination__numbers { display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.ledger-pagination__numbers button { width: auto; min-width: 32px; padding: 0 8px; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.ledger-pagination__numbers button.is-current { background: var(--ink); border-color: var(--ink); color: var(--paper); opacity: 1; }
+.ledger-pagination__gap { padding: 0 2px; color: var(--ink-faint); }
+.ledger-pagination__jump { display: inline-flex; align-items: center; gap: 6px; }
+.ledger-pagination__jump .input { width: 112px; min-height: 32px; padding: 4px 9px; }
+@media (max-width: 640px) {
+  .ledger-search { flex-basis: 100%; max-width: none; }
+  .filter-pair { grid-template-columns: 1fr; }
+  .ledger-applied__count { margin-left: 0; }
+}

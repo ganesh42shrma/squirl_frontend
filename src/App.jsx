@@ -1,26 +1,19 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
-import { LedgerPage } from './features/ledger/LedgerPage';
-import { ImportsPage } from './features/imports/ImportsPage';
-import { SortOutPage } from './features/sortout/SortOutPage';
 import { RedirectIfSignedIn, RequireAuth } from './features/auth/RequireAuth';
 import { LoginPage } from './features/auth/LoginPage';
 import { SignupPage } from './features/auth/SignupPage';
 import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from './features/auth/ResetPasswordPage';
 import { ProfilePage } from './features/profile/ProfilePage';
-import { CommitmentsPage } from './features/commitments/CommitmentsPage';
+import { LEGACY_REDIRECTS, MODULES } from './app/modules';
+import { LegacyRedirect } from './app/LegacyRedirect';
 
-// The landing page carries decorative scroll scenes, so signed-in routes never download it.
+// The landing page loads its own design kit (public/kit), so signed-in routes never download it.
 const LandingPage = lazy(() => import('./features/landing/LandingPage').then((m) => ({ default: m.LandingPage })));
-// The dashboard and highlights pull in the charting library, so they load only when opened.
+// The dashboard pulls in the charting library, so it loads only when opened.
 const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage })));
-const InsightsPage = lazy(() => import('./features/insights/InsightsPage').then((m) => ({ default: m.InsightsPage })));
-const LivePage = lazy(() => import('./features/live/LivePage').then((m) => ({ default: m.LivePage })));
-const GoalsPage = lazy(() => import('./features/goals/GoalsPage').then((m) => ({ default: m.GoalsPage })));
-const GoalDetailPage = lazy(() => import('./features/goals/GoalDetailPage').then((m) => ({ default: m.GoalDetailPage })));
-const ConfigureDashboardPage = lazy(() => import('./features/dashboard/ConfigureDashboardPage').then((m) => ({ default: m.ConfigureDashboardPage })));
 
 const withSuspense = (element) => <Suspense fallback={null}>{element}</Suspense>;
 
@@ -41,17 +34,21 @@ export default function App() {
         }
       >
         <Route index element={withSuspense(<DashboardPage />)} />
-        <Route path="ledger" element={<LedgerPage />} />
-        <Route path="highlights" element={withSuspense(<InsightsPage />)} />
-        <Route path="insights" element={<Navigate to="/app/highlights" replace />} />
-        <Route path="imports" element={<ImportsPage />} />
-        <Route path="sort-out" element={<SortOutPage />} />
         <Route path="profile" element={<ProfilePage />} />
-        <Route path="profile/dashboard" element={withSuspense(<ConfigureDashboardPage />)} />
-        <Route path="payments" element={<CommitmentsPage />} />
-        <Route path="goals" element={withSuspense(<GoalsPage />)} />
-        <Route path="goals/:id" element={withSuspense(<GoalDetailPage />)} />
-        <Route path="live" element={withSuspense(<LivePage />)} />
+        {/* Every module's pages come from the registry in app/modules.js. */}
+        {MODULES.map((module) => (
+          <Route key={module.id} path={module.id}>
+            <Route index element={<Navigate to={module.tabs[0].path} replace />} />
+            {(module.redirects || []).map(({ from, to }) => <Route key={from} path={from} element={<LegacyRedirect to={to} />} />)}
+            {module.tabs.flatMap((tab) => [tab, ...(tab.also || [])]).map(({ path, page: Page }) => (
+              <Route key={path} path={path} element={withSuspense(<Page />)} />
+            ))}
+          </Route>
+        ))}
+        {/* The old top-level addresses (/app/ledger, /app/goals/:id ...) redirect to their module. */}
+        {LEGACY_REDIRECTS.map(({ from, to }) => (
+          <Route key={from} path={from} element={<LegacyRedirect to={to} />} />
+        ))}
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

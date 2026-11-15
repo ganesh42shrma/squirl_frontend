@@ -1,13 +1,20 @@
+// Page sizes and the "61–90 of 1,284" arithmetic. The current page and size live in the URL
+// (see ledgerFilters.js); this is only the maths.
 export const LEDGER_PAGE_SIZES = [30, 50, 100, 200];
-export const initialPagination = { scope: '', page: 1, limit: 30 };
+export const DEFAULT_PAGE_SIZE = 30;
+const SIZE_KEY = 'squirl-ledger-page-size';
 
-export function paginationReducer(state, action) {
-  switch (action.type) {
-    case 'scope': return state.scope === action.scope ? state : { ...state, scope: action.scope, page: 1 };
-    case 'page': return { ...state, scope: action.scope, page: Math.max(1, action.page) };
-    case 'limit': return LEDGER_PAGE_SIZES.includes(action.limit) ? { ...state, scope: action.scope, page: 1, limit: action.limit } : state;
-    default: return state;
+// The size you last picked, remembered in this browser; a link's own ?limit= wins.
+export function rememberedPageSize() {
+  try {
+    const stored = Number(globalThis.localStorage?.getItem(SIZE_KEY));
+    return LEDGER_PAGE_SIZES.includes(stored) ? stored : DEFAULT_PAGE_SIZE;
+  } catch {
+    return DEFAULT_PAGE_SIZE;
   }
+}
+export function rememberPageSize(size) {
+  try { globalThis.localStorage?.setItem(SIZE_KEY, String(size)); } catch { /* blocked storage: it just isn't remembered */ }
 }
 
 export function paginationInfo(page, limit, total) {

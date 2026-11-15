@@ -80,3 +80,11 @@ Data lives in React Query. Each feature's `use*.js` file holds its queries and m
 - **Chart colours** (`--viz-*`) are stronger shades of the same hues, kept separate from the UI accents. Both the light and dark sets passed a colour-blindness separation check across every pair. Charts always carry text labels as well, and the six-month chart has a table view.
 - **Icons**: [Phosphor](https://phosphoricons.com). Interface icons use the regular weight. Category icons use duotone (an ink outline over a soft fill, like the illustrations), tinted by money type. The category-to-icon map is in `src/lib/categoryIcons.js`. A category with no entry uses its parent's icon, then its emoji, then a plain tag.
 - **Motion**: the hero drawing sketches itself in once, and the monthly total counts up when the month changes. Everything else moves only in response to what you do. Reduced-motion settings are respected throughout.
+
+## Installed Android app (PWA)
+
+`npm run build` also generates the service worker. Run `npm run test:pwa` after building.
+The worker caches public interface files and provides a reconnect page; financial API responses
+are never cached and offline financial editing is not supported. Profile → This device controls
+notifications. The private desktop serves the build and `/api` from one HTTPS origin through
+Tailscale; see [the setup guide](../squirl_backend/deployment/MOBILE.md).

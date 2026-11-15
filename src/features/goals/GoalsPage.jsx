@@ -11,6 +11,7 @@ import { KIND_LABELS, TRACK_LABELS, durationText, useGoals } from './useGoals';
 import '../../components/layout/layout.css';
 import '../commitments/commitments.css';
 import './goals.css';
+import { goalPath } from '../../app/paths';
 
 const whole = (n) => (n == null ? '—' : formatMoney(Math.round(n), { rounded: true }));
 
@@ -45,7 +46,7 @@ function GoalCard({ goal }) {
       <div className="cm-card__head">
         <div>
           <h3>
-            <Link to={`/app/goals/${goal._id}`} className="goal-card__link">{maskFinancialText(goal.name)}</Link>
+            <Link to={goalPath(goal._id)} className="goal-card__link">{maskFinancialText(goal.name)}</Link>
           </h3>
           <p className="cm-muted">{[KIND_LABELS[goal.kind], goal.status === 'paused' && 'Paused'].filter(Boolean).join(' · ')}</p>
         </div>
@@ -141,7 +142,7 @@ export function GoalsPage() {
           onClose={() => setCreating(false)}
           onSaved={(goal) => {
             toast(`Added ${goal.name}`);
-            navigate(`/app/goals/${goal._id}`);
+            navigate(goalPath(goal._id));
           }}
         />
       )}

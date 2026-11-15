@@ -32,7 +32,12 @@ export function useSchedule(id, enabled) {
 
 function useCommitmentMutation(mutationFn) {
   const queryClient = useQueryClient();
-  return useMutation({ mutationFn, onSuccess: () => queryClient.invalidateQueries({ queryKey: ['commitments'] }) });
+  return useMutation({ mutationFn, onSuccess: () => {
+    return Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['commitments'] }),
+      queryClient.invalidateQueries({ queryKey: ['goals'] }),
+    ]);
+  } });
 }
 
 export const useSaveCommitment = () =>

@@ -19,11 +19,12 @@ export function useUnsortedCount() {
   });
 }
 
-export function useSummary(params) {
+export function useSummary(params, { enabled = true } = {}) {
   return useQuery({
     queryKey: ['summary', params],
     queryFn: () => api('/transactions/summary', { query: params }).then((r) => r.data),
     placeholderData: keepPreviousData,
+    enabled,
   });
 }
 
@@ -37,6 +38,8 @@ function useTransactionMutation(mutationFn) {
       queryClient.invalidateQueries({ queryKey: ['summary'] });
       queryClient.invalidateQueries({ queryKey: ['tags'] });
       queryClient.invalidateQueries({ queryKey: ['insights'] });
+      queryClient.invalidateQueries({ queryKey: ['commitments'] });
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
     },
   });
 }

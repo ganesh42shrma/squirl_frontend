@@ -15,6 +15,7 @@ import { formatMoney, formatMonth, formatMonthName, formatMonthShort, monthRange
 import { MONEY_TYPES, monthFigures } from '../../lib/moneyTypes';
 import '../../components/layout/layout.css';
 import './insights.css';
+import { financePath } from '../../app/paths';
 
 const money = (n) => formatMoney(Math.round(n), { rounded: true });
 
@@ -54,7 +55,7 @@ function WhereItWent({ month, range }) {
       <ol className="spend-bars">
         {rows.map((row) => {
           const share = Math.round((row.value / total) * 100);
-          const to = `/app/ledger?month=${month}&category=${row.key === null ? 'none' : row.key}`;
+          const to = financePath('ledger', `?month=${month}&category=${row.key === null ? 'none' : row.key}`);
           return (
             <li key={row.key ?? 'none'}>
               <Link
@@ -113,7 +114,7 @@ function MonthFigures({ range }) {
       {f.unsortedCount > 0 && (
         <p className="figures__unsorted">
           {f.unsortedCount} row{f.unsortedCount === 1 ? ' is' : 's are'} not sorted yet and counted as spending or
-          earnings. <Link to="/app/sort-out">Sort them</Link>
+          earnings. <Link to={financePath('sort-out')}>Sort them</Link>
         </p>
       )}
     </dl>

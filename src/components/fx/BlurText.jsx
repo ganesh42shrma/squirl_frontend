@@ -4,14 +4,14 @@ import { motion, useReducedMotion } from 'motion/react';
  * Words settle in one after another, coming out of a soft blur (inspired by React Bits' BlurText).
  * The full sentence stays in the DOM for screen readers; the animated words are hidden from them.
  */
-export function BlurText({ text, as: Tag = 'h1', className, delay = 0, stagger = 0.08 }) {
+export function BlurText({ text, as: Tag = 'h1', className, delay = 0, stagger = 0.08, ...rest }) {
   const reduceMotion = useReducedMotion();
   const words = text.split(' ');
 
-  if (reduceMotion) return <Tag className={className}>{text}</Tag>;
+  if (reduceMotion) return <Tag className={className} {...rest}>{text}</Tag>;
 
   return (
-    <Tag className={className}>
+    <Tag className={className} {...rest}>
       <span className="visually-hidden">{text}</span>
       <span aria-hidden="true">
         {words.map((word, i) => (

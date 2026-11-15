@@ -19,6 +19,7 @@ export function SignupPage() {
 
   return (
     <AuthLayout
+      scene="signup"
       title="Create your ledger"
       intro="Your data stays on this computer’s encrypted drive, separate from every other account."
       footer={

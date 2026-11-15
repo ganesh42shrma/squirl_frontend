@@ -1,0 +1,3 @@
+[
+  { "check": "section-height", "target": "section#local", "reason": "the client asked for a scroll-driven pen drive sequence; it is four screens with a sticky scene by design" }
+]
