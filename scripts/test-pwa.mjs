@@ -54,6 +54,12 @@ assert(![...cached.keys()].some((p) => p.startsWith('/api') || p === '/app' || p
 const request = (path, mode = 'cors', method = 'GET') => ({ url: `https://squirl.example.invalid${path}`, method, mode });
 assert.equal(await event('fetch', { request: request('/api/transactions') }), undefined, 'financial data bypasses caches');
 assert.equal(await event('fetch', { request: request('/api/users/me', 'cors', 'POST') }), undefined);
+// Private receipt photos are never cached: every /api/media request, image or metadata, goes straight to the network.
+for (const media of [`/api/media/${'a'.repeat(24)}/file`, '/api/media/attachments?ownerType=task&ownerId=x', '/api/media/status']) {
+  assert.equal(await event('fetch', { request: request(media, 'no-cors') }), undefined, `${media} bypasses the worker's caches`);
+}
+assert.equal(await event('fetch', { request: request(`/api/media/${'a'.repeat(24)}/file`, 'navigate') }), undefined, 'even a direct visit to a photo URL is not cached or replaced by the offline page');
+assert(![...cached.keys()].some((p) => String(p).includes('media')), 'no photo URL is ever precached');
 networkDown = true;
 assert.equal(await event('fetch', { request: request('/app/tasks/today', 'navigate') }), 'cached:/offline.html');
 assert.equal(await event('fetch', { request: request('/icons/squirl-192.png') }), 'cached:/icons/squirl-192.png');

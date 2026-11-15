@@ -7,6 +7,7 @@ import { TagInput } from '../tags/TagInput';
 import { describeError } from '../../api/client';
 import { isGuestMode, maskFinancialText } from '../../lib/guestMode';
 import { formatAccount, toInputDate } from '../../lib/format';
+import { AttachmentsPanel } from '../media/AttachmentsPanel';
 import { useUpdateTransaction } from './useTransactions';
 
 /**
@@ -105,6 +106,7 @@ export function TransactionSheet({ tx, onClose }) {
             <textarea className="input tx-form__input tx-form__note" rows={3} maxLength={1000} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional" />
           </label>
         )}
+        <AttachmentsPanel ownerType="transaction" ownerId={tx._id} />
       </form>
     </BottomSheet>
   );

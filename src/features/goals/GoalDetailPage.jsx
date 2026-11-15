@@ -9,6 +9,7 @@ import { isGuestMode, maskFinancialText } from '../../lib/guestMode';
 import { useGuestMode } from '../../lib/useGuestMode';
 import { formatAccount, formatDate, formatMoney, todayISO } from '../../lib/format';
 import { useDebouncedValue } from '../../lib/hooks';
+import { AttachmentsPanel } from '../media/AttachmentsPanel';
 import { GoalChart } from './GoalChart';
 import { GoalForm } from './GoalForm';
 import { GoalProgress, TrackBadge } from './GoalsPage';
@@ -290,6 +291,10 @@ export function GoalDetailPage() {
           ].filter(Boolean).join(' · ')}
         </p>
         <Contributions goal={goal} />
+      </section>
+
+      <section className="cm-section-block" aria-label="Photos">
+        <AttachmentsPanel ownerType="goal" ownerId={goal._id} />
       </section>
 
       <footer className="goal-detail__foot">

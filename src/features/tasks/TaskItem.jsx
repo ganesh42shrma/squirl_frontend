@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { CaretDown, CaretRight, ListChecks, Repeat, Trash, X } from '@phosphor-icons/react';
 import { describeError } from '../../api/client';
+import { AttachmentsPanel } from '../media/AttachmentsPanel';
 import { DifficultyBadge } from './SystemWindow';
 import { dueLabel, REPEAT_OPTIONS, repeatId } from './taskUtils';
 import {
@@ -117,6 +118,12 @@ function TaskDetail({ task, today, lists }) {
             ))}
           </ul>
           <AddLine placeholder="Add a step" label="New checklist step" onAdd={(value) => addItem.mutate({ id: task._id, text: value })} disabled={addItem.isPending} />
+        </div>
+      )}
+
+      {!task.parentId && (
+        <div className="task-detail__block">
+          <AttachmentsPanel ownerType="task" ownerId={task._id} />
         </div>
       )}
 
