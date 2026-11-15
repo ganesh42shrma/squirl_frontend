@@ -82,6 +82,14 @@ const NOTICES = {
       return [`${name} due ${dueIn(days)}`, `${amount || 'Tap to see it'}${more}`];
     },
   },
+  captures: {
+    url: '/app?capture=inbox',
+    plain: ['Your capture inbox', 'Some quick notes are waiting to be sorted.'],
+    detail: (d) => {
+      const n = count(d.count), first = text(d.first, 50);
+      return n && first ? [`${plural(n, 'note')} to sort`, n > 1 ? `${first} and ${n - 1} more` : first] : null;
+    },
+  },
   test: {
     url: '/app/settings/notifications',
     plain: ['Squirl is set up', 'Reminders will look like this.'],

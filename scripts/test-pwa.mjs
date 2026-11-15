@@ -82,11 +82,19 @@ await event('push', { data: { json: () => ({ kind: 'habits', detail: { count: 2,
 assert(notices.at(-1).body.length < 70, 'long names are capped');
 await event('push', { data: { json: () => ({ kind: 'bills', detail: { name: 42, amount: 'lots' } }) } });
 assert.equal(notices.at(-1).title, 'Payment reminder', 'malformed detail falls back to the plain line');
+// Quick Capture inbox reminder: count and first note, capped; a tap opens the palette on the inbox.
+await event('push', { data: { json: () => ({ kind: 'captures', detail: { count: 3, first: 'Look into term\ninsurance ' + 'x'.repeat(100) } }) } });
+assert.equal(notices.at(-1).title, '3 notes to sort'); assert(notices.at(-1).body.endsWith(' and 2 more')); assert(!notices.at(-1).body.includes('\n'));
+assert.equal(notices.at(-1).data.url, '/app?capture=inbox');
+await event('push', { data: { json: () => ({ kind: 'captures' }) } });
+assert.equal(notices.at(-1).title, 'Your capture inbox', 'details off shows a generic line');
 notices.length = 2;
 await event('notificationclick', { notification: { close() {}, data: { url: 'https://evil.invalid' } } });
 assert.deepEqual(opened, ['https://squirl.example.invalid/app']);
 await event('notificationclick', { notification: { close() {}, data: { url: '/app/tasks/habits' } } });
 assert.equal(opened[1], 'https://squirl.example.invalid/app/tasks/habits');
+await event('notificationclick', { notification: { close() {}, data: { url: '/app?capture=inbox' } } });
+assert.equal(opened[2], 'https://squirl.example.invalid/app?capture=inbox');
 const id = 'a'.repeat(24);
 windowOpen = true; networkDown = false;
 await event('push', { data: { json: () => ({ kind: 'sms_payment', promptId: id, body: 'PRIVATE AMOUNT', url: 'https://evil.invalid' }) } });

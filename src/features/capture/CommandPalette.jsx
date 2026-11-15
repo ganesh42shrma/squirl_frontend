@@ -1,0 +1,305 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
+import {
+  ArrowRight, CalendarCheck, CheckSquare, Flame, HandCoins, Lightning, MagnifyingGlass, NotePencil, Receipt, Sparkle, Target, Tray, X,
+} from '@phosphor-icons/react';
+import { MODULES } from '../../app/modules';
+import { describeError } from '../../api/client';
+import { useToast } from '../../components/ui/Toast';
+import { useDebouncedValue } from '../../lib/hooks';
+import { todayISO } from '../../lib/format';
+import { navCommands, rankCommands, describeAction, describeResult, resultLink, savedMessage, canUndo, undoMessage, submissionFor, EXAMPLES } from './paletteModel';
+import { useAiPreview, useCaptureInbox, useCapturePreview, useCaptureSearch, useCommitCapture, useDismissCapture, useUndoCapture } from './useCapture';
+import './capture.css';
+
+const ICONS = { expense: Receipt, income: HandCoins, task: CheckSquare, habit: Flame, note: NotePencil, goal: Target, bill: CalendarCheck, nav: ArrowRight, ai: Sparkle, inbox: Tray };
+const COMMANDS = navCommands(MODULES);
+
+function RowIcon({ kind }) {
+  const Icon = ICONS[kind] || ArrowRight;
+  return <span className={`palette-row__icon palette-row__icon--${kind}`}><Icon size={16} aria-hidden="true" /></span>;
+}
+
+/**
+ * ⌘K / Ctrl+K anywhere: one box that both captures ("chai 40 upi", "remind me to call mom
+ * tomorrow 7pm", "gym done") and finds things (pages, transactions, tasks, habits, goals, bills).
+ * Enter saves or opens the highlighted row; ⌘/Ctrl+Enter always saves what you typed.
+ * Mount it to open, unmount to close (like Dialog).
+ */
+export function CommandPalette({ onClose, startIn = 'all' }) {
+  const ref = useRef(null);
+  const inputRef = useRef(null);
+  const listRef = useRef(null);
+  const navigate = useNavigate();
+  const toast = useToast();
+  const [text, setText] = useState('');
+  const [active, setActive] = useState(0);
+  const [inboxItem, setInboxItem] = useState(null); // an inbox note being re-read
+  const [ai, setAi] = useState(null); // { text, actions, understood } from the AI engine
+  const [error, setError] = useState('');
+  const submission = useRef(null); // { fingerprint, clientId } of the save in flight or last failed
+  const debounced = useDebouncedValue(text.trim(), 180);
+
+  const preview = useCapturePreview(debounced);
+  const search = useCaptureSearch(debounced);
+  const inbox = useCaptureInbox();
+  const aiPreview = useAiPreview();
+  const commit = useCommitCapture();
+  const undo = useUndoCapture();
+  const dismiss = useDismissCapture();
+
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    const dialog = ref.current;
+    if (!dialog.open) dialog.showModal();
+    inputRef.current?.focus();
+    const onCancel = (e) => { e.preventDefault(); closeRef.current(); };
+    dialog.addEventListener('cancel', onCancel);
+    return () => dialog.removeEventListener('cancel', onCancel);
+  }, []);
+
+  const typed = text.trim();
+  const fresh = preview.data && debounced === typed ? preview.data : null;
+  const useAiResult = ai && ai.text === typed;
+  const proposal = useAiResult ? ai : fresh;
+  const today = proposal?.today || preview.data?.today || todayISO();
+  const understood = Boolean(proposal?.understood);
+
+  const rows = useMemo(() => {
+    const list = [];
+    if (!typed) {
+      for (const item of (inbox.data?.items || []).slice(0, startIn === 'inbox' ? 10 : 4)) list.push({ id: `inbox:${item._id}`, type: 'inbox', item });
+      for (const c of rankCommands(COMMANDS, '', startIn === 'inbox' ? 3 : 6)) list.push({ id: c.id, type: 'nav', command: c });
+      return list;
+    }
+    const captureRow = { id: 'capture', type: 'capture', actions: proposal?.actions || [], pending: !proposal };
+    if (understood) list.push(captureRow);
+    if (proposal && !understood && !useAiResult) list.push({ id: 'ai', type: 'ai' });
+    for (const r of (debounced === typed ? search.data : null) || []) list.push({ id: `${r.kind}:${r.id}`, type: 'result', result: r });
+    for (const c of rankCommands(COMMANDS, typed, 5)) list.push({ id: c.id, type: 'nav', command: c });
+    if (!understood) list.push(captureRow);
+    return list;
+  }, [typed, debounced, proposal, understood, useAiResult, search.data, inbox.data, startIn]);
+
+  useEffect(() => setActive(0), [typed]);
+  useEffect(() => {
+    listRef.current?.querySelector('[aria-selected="true"]')?.scrollIntoView?.({ block: 'nearest' });
+  }, [active]);
+
+  const save = async () => {
+    if (!typed || commit.isPending) return;
+    setError('');
+    try {
+      const body = {
+        text: typed,
+        ...(proposal?.actions?.length && { actions: proposal.actions.map(({ type, data }) => ({ type, data })) }),
+        ...(inboxItem && { inboxId: inboxItem._id }),
+        engine: useAiResult ? 'ai' : 'rules',
+      };
+      // Pressing Enter again after a failure (or a dropped connection) is the same save, not a second one.
+      submission.current = submissionFor(submission.current, body);
+      const result = await commit.mutateAsync({ ...body, clientId: submission.current.clientId });
+      submission.current = null;
+      toast(savedMessage(result), canUndo(result) ? { action: { label: 'Undo', onClick: () => undoCapture(result.capture._id) }, duration: 6000 } : undefined);
+      setText(''); setAi(null); setInboxItem(null);
+      onClose();
+    } catch (e) {
+      // The server says this id belongs to different text: it can never succeed, so the next try starts fresh.
+      if (e?.code === 'CAPTURE_CLIENT_ID_REUSED') submission.current = null;
+      setError(describeError(e));
+    }
+  };
+
+  const undoCapture = (id) => undo.mutate(id, {
+    onSuccess: (r) => toast(undoMessage(r.kept)),
+    onError: (e) => toast(describeError(e), { tone: 'error' }),
+  });
+
+  const askAi = () => {
+    setError('');
+    aiPreview.mutate(typed, {
+      onSuccess: (r) => setAi({ ...r, text: typed }),
+      onError: (e) => setError(describeError(e)),
+    });
+  };
+
+  const open = (to) => { onClose(); navigate(to); };
+
+  const activate = (row) => {
+    if (!row) return;
+    if (row.type === 'capture') save();
+    else if (row.type === 'ai') askAi();
+    else if (row.type === 'nav') open(row.command.to);
+    else if (row.type === 'result') {
+      if (row.result.kind === 'capture') { setInboxItem({ _id: row.result.id, text: row.result.title }); setText(row.result.title); }
+      else open(resultLink(row.result));
+    } else if (row.type === 'inbox') { setInboxItem(row.item); setText(row.item.text); inputRef.current?.focus(); }
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive((i) => Math.min(i + 1, rows.length - 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((i) => Math.max(i - 1, 0)); }
+    else if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      if (e.metaKey || e.ctrlKey) save();
+      else activate(rows[active]);
+    }
+  };
+
+  const renderRow = (row, index) => {
+    const selected = index === active;
+    const common = {
+      id: `palette-${row.id}`,
+      role: 'option',
+      'aria-selected': selected,
+      className: `palette-row${selected ? ' is-active' : ''}`,
+      onMouseMove: () => setActive(index),
+      onClick: () => activate(row),
+    };
+    if (row.type === 'capture') {
+      const items = row.actions.length ? row.actions.map((a) => describeAction(a, today)) : [];
+      return (
+        <li {...common} className={`${common.className} palette-row--capture`}>
+          <RowIcon kind={understood ? 'nav' : 'inbox'} />
+          <span className="palette-row__body">
+            <span className="palette-row__title">
+              {commit.isPending ? 'Saving…' : understood ? `Save${items.length > 1 ? ` ${items.length} items` : ''}` : inboxItem ? 'Keep in inbox' : 'Save to inbox'}
+              {useAiResult && <span className="palette-badge">AI</span>}
+            </span>
+            {row.pending && <span className="palette-row__detail">Reading…</span>}
+            {understood && (
+              <ul className="palette-actions">
+                {items.map((d, i) => (
+                  // eslint-disable-next-line react/no-array-index-key
+                  <li key={i} className={`palette-action palette-action--${d.kind}`}>
+                    <RowIcon kind={d.kind} />
+                    <span><strong>{d.title}</strong><small>{d.detail}</small></span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {!understood && !row.pending && <span className="palette-row__detail">Not sure what this is. Keep it as a note and sort it later.</span>}
+          </span>
+          <kbd>{selected ? '↵' : '⌘↵'}</kbd>
+        </li>
+      );
+    }
+    if (row.type === 'ai') {
+      return (
+        <li {...common}>
+          <RowIcon kind="ai" />
+          <span className="palette-row__body">
+            <span className="palette-row__title">{aiPreview.isPending ? 'Asking the AI…' : 'Read it with AI'}</span>
+            <span className="palette-row__detail">Uses your AI model from Settings. You confirm before anything is saved.</span>
+          </span>
+        </li>
+      );
+    }
+    if (row.type === 'inbox') {
+      return (
+        <li {...common}>
+          <RowIcon kind="inbox" />
+          <span className="palette-row__body">
+            <span className="palette-row__title">{row.item.text}</span>
+            <span className="palette-row__detail">Inbox · Enter to sort it</span>
+          </span>
+          <button
+            type="button"
+            className="palette-row__dismiss"
+            aria-label={`Dismiss “${row.item.text}”`}
+            onClick={(e) => { e.stopPropagation(); dismiss.mutate(row.item._id, { onError: (err) => setError(describeError(err)) }); }}
+          >
+            <X size={14} />
+          </button>
+        </li>
+      );
+    }
+    const d = row.type === 'result' ? describeResult(row.result, today) : { kind: 'nav', title: row.command.label, detail: row.command.hint };
+    return (
+      <li {...common}>
+        <RowIcon kind={d.kind} />
+        <span className="palette-row__body">
+          <span className="palette-row__title">{d.title}</span>
+          <span className="palette-row__detail">{d.detail}</span>
+        </span>
+      </li>
+    );
+  };
+
+  const inboxCount = inbox.data?.total || 0;
+  const firstNav = rows.findIndex((r) => r.type === 'nav');
+  const firstResult = rows.findIndex((r) => r.type === 'result');
+  const firstInbox = rows.findIndex((r) => r.type === 'inbox');
+
+  return createPortal(
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
+    <dialog ref={ref} className="palette" aria-label="Capture or search" onClick={(e) => e.target === ref.current && onClose()}>
+      <div className="palette__frame">
+        <div className="palette__search">
+          {typed && understood ? <Lightning size={18} aria-hidden="true" /> : <MagnifyingGlass size={18} aria-hidden="true" />}
+          <input
+            ref={inputRef}
+            className="palette__input"
+            value={text}
+            onChange={(e) => { setText(e.target.value.slice(0, 500)); setError(''); }}
+            onKeyDown={onKeyDown}
+            placeholder="Capture anything, or search…"
+            role="combobox"
+            aria-expanded="true"
+            aria-controls="palette-list"
+            aria-activedescendant={rows[active] ? `palette-${rows[active].id}` : undefined}
+            autoComplete="off"
+            spellCheck="false"
+            enterKeyHint="done"
+          />
+          <button type="button" className="palette__close" onClick={onClose} aria-label="Close"><X size={16} /></button>
+        </div>
+        {inboxItem && (
+          <p className="palette__context">
+            Sorting an inbox note. Edit it, then press Enter.
+            <button type="button" onClick={() => { setInboxItem(null); setText(''); }}>Cancel</button>
+          </p>
+        )}
+        {error && <p className="palette__error" role="alert">{error}</p>}
+        <ul className="palette__list" id="palette-list" role="listbox" aria-label="Suggestions" ref={listRef}>
+          {rows.map((row, i) => (
+            <FragmentWithHeading
+              key={row.id}
+              heading={
+                i === firstInbox ? `Inbox · ${inboxCount}` : i === firstResult ? 'Found' : i === firstNav ? (typed ? 'Go to' : 'Jump to') : null
+              }
+            >
+              {renderRow(row, i)}
+            </FragmentWithHeading>
+          ))}
+        </ul>
+        {!typed && (
+          <div className="palette__examples">
+            <span>Try</span>
+            {EXAMPLES.map((ex) => (
+              <button key={ex} type="button" onClick={() => { setText(ex); inputRef.current?.focus(); }}>{ex}</button>
+            ))}
+          </div>
+        )}
+        <footer className="palette__foot">
+          <span><kbd>↑</kbd><kbd>↓</kbd> move</span>
+          <span><kbd>↵</kbd> choose</span>
+          <span><kbd>⌘↵</kbd> save as typed</span>
+          <span><kbd>esc</kbd> close</span>
+        </footer>
+      </div>
+    </dialog>,
+    document.body,
+  );
+}
+
+function FragmentWithHeading({ heading, children }) {
+  return (
+    <>
+      {heading && <li className="palette__heading" role="presentation">{heading}</li>}
+      {children}
+    </>
+  );
+}

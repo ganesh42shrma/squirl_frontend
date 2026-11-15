@@ -10,6 +10,7 @@ import { MobileTabBar } from './MobileTabBar';
 import { useIsMobile } from '../../hooks/useMedia';
 import { QuoteFooter } from './QuoteFooter';
 import { SystemToasts } from '../../features/tasks/SystemToasts';
+import { CaptureLauncher } from '../../features/capture/CaptureLauncher';
 import { useLogout, useMe } from '../../features/auth/useAuth';
 import { DASHBOARD_PATH, PROFILE_PATH, SETTINGS_PATH, tabForPath } from '../../app/modules';
 import './layout.css';
@@ -118,6 +119,7 @@ export function AppShell() {
               <ModuleLauncher module={module} />
             </nav>
           )}
+          <CaptureLauncher />
           <GuestModeToggle />
           <ThemeToggle />
           {!isMobile && <AccountMenu />}

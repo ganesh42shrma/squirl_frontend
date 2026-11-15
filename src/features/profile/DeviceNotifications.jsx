@@ -98,6 +98,7 @@ export function DeviceNotifications() {
               <label><input type="checkbox" checked={preferences.habits} onChange={(e) => set('habits', e.target.checked)} /> Habits</label>
               <label><input type="checkbox" checked={preferences.bills} onChange={(e) => set('bills', e.target.checked)} /> Bills and EMIs</label>
               <label><input type="checkbox" checked={preferences.smsPayments !== false} onChange={(e) => set('smsPayments', e.target.checked)} /> New payments</label>
+              <label><input type="checkbox" checked={preferences.captures !== false} onChange={(e) => set('captures', e.target.checked)} /> Unsorted captures</label>
             </fieldset>
             <label className="sms-check">
               <input type="checkbox" checked={preferences.details !== false} onChange={(e) => set('details', e.target.checked)} disabled={busy} />
