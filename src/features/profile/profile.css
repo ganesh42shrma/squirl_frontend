@@ -104,6 +104,17 @@
 .notification-options { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
 .notification-options label { display: flex; align-items: center; gap: 8px; }
 
+.sms-setup { min-width: 0; gap: 28px; }
+.sms-bank { display: grid; min-width: 0; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius); }
+.sms-bank legend { padding-inline: 5px; font-weight: 600; }
+.sms-check { display: flex; align-items: center; gap: 8px; }
+.sms-senders { width: 100%; resize: vertical; font-family: var(--font-sans); }
+.sms-devices { display: grid; margin: 0; padding: 0; list-style: none; }
+.sms-devices li { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.sms-devices li > div { min-width: 0; overflow-wrap: anywhere; }
+.sms-devices .btn { flex: none; }
+.sms-body, .sms-previous { margin: 0; padding: 14px; background: var(--stone); border-radius: var(--radius); white-space: pre-wrap; overflow-wrap: anywhere; }
+
 .profile-form__actions {
   display: flex;
   flex-wrap: wrap;

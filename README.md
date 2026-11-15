@@ -21,6 +21,22 @@ In development, Vite proxies `/api` to `http://localhost:4000`, so there is no C
 
 ## Pages
 
+Profile → **Bank SMS** configures one owned account per bank, exact SMS sender IDs, device-token
+creation/revocation, and a paginated review queue. SBI presets are `VK-SBIUPI-S`, `AD-SBIUPI-S`;
+Kotak presets are `JM-KOTAKB-S`, `JD-KOTAKB-S`, `JX-KOTAKB-S`. Actual account suffixes are entered by
+the person and are never bundled into the application. Previously saved sender lists take priority.
+
+This needs the backend SMS endpoints and migration v20. Open the private HTTPS address to create
+a pairing code. The one-time code contains the current HTTPS origin, the scoped device token and
+bank mappings; it is held only in component state and copied only on request, never browser storage
+or the query cache. Revoke/re-pair if it is lost. Guest mode unmounts the entire private setup/review
+interface. Review confirmations refresh ledger, summary, insights, commitments, goals and profile
+queries. This screen does **not** read SMS: the Android helper still needs to be built and installed.
+
+After updating this frontend on Linux, run `VITE_API_URL= npm run build` in this directory and reload
+the installed PWA. No new dependencies are required. Run `npm run test:sms-ui` for the synthetic
+sender validation, query/mutation and initial-render checks.
+
 | Route | What it's for |
 |---|---|
 | `/` | Landing page |

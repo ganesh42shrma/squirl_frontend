@@ -15,7 +15,8 @@
     "test:tasks-ui": "node scripts/test-tasks-ui.mjs",
     "test:pwa": "node scripts/test-pwa.mjs",
     "test:payment-refresh": "node scripts/test-payment-refresh.mjs",
-    "test:quotes": "node scripts/test-quotes.mjs"
+    "test:quotes": "node scripts/test-quotes.mjs",
+    "test:sms-ui": "node scripts/test-sms-ui.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

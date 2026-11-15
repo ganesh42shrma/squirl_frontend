@@ -15,6 +15,7 @@ import { ResetFinancialData } from './ResetFinancialData';
 import { AiSettings } from './AiSettings';
 import { DataSources } from './DataSources';
 import { DeviceNotifications } from './DeviceNotifications';
+import { BankSms } from './BankSms';
 import '../commitments/commitments.css';
 import { CUSTOMIZE_DASHBOARD_PATH } from '../../app/paths';
 
@@ -235,6 +236,7 @@ export function ProfilePage() {
 
       <Details profile={profile} />
       <DeviceNotifications />
+      <BankSms />
       <section className="profile-section" aria-labelledby="dashboard-title">
         <div className="profile-section__head"><h2 id="dashboard-title">Dashboard</h2><p>Choose widgets and data.</p></div>
         <div><Link className="btn btn--quiet" to={CUSTOMIZE_DASHBOARD_PATH}>Configure dashboard</Link></div>
