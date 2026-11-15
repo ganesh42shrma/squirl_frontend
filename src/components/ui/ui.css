@@ -251,3 +251,12 @@
 .popover__panel--left { left: 0; }
 .popover__panel--right { right: 0; }
 @media (max-width: 640px) { .popover { position: static; } .popover__panel { left: 16px; right: 16px; width: auto; } }
+
+/* Settings save status: "All changes saved" / "Unsaved changes", above the Save button. */
+.save-bar { display: grid; gap: 10px; }
+.save-bar__status { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--ink-soft); font-size: var(--text-sm); }
+.save-bar__status--dirty, .save-bar__status--error { color: var(--clay-ink); font-weight: 600; }
+.save-bar__status--saving { color: var(--ink-faint); }
+.settings-state { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-weight: 600; }
+.settings-state::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--ink-faint); }
+.settings-state--on::before { background: var(--ink); }

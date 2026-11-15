@@ -43,6 +43,7 @@ try {
   for (const [hook, variables, method, path] of [
     [hooks.useSaveSmsAccounts, payload, 'PUT', '/sms/accounts'],
     [hooks.useRevokeSmsDevice, 'synthetic-device', 'DELETE', '/sms/devices/synthetic-device'],
+    [hooks.useRemoveSmsDevice, 'synthetic-device', 'POST', '/sms/devices/synthetic-device/remove'],
     [hooks.useResolveSms, { id: 'synthetic-event' }, 'POST', '/sms/events/synthetic-event/dismiss'],
     [hooks.useResolveSms, { id: 'synthetic-event', fields: { amount: 1 } }, 'POST', '/sms/events/synthetic-event/confirm'],
   ]) {
@@ -73,6 +74,20 @@ try {
   assert.match(markup, /Nothing to review/);
   assert.doesNotMatch(markup, /synthetic-token/);
   client.clear();
+  // A disconnected phone can be removed from the list; a connected one can only be disconnected.
+  const phones = new QueryClient();
+  phones.setQueryData(['sms', 'accounts'], [{ bank: 'sbi', last4: '1234', senders: ['SBIUPI'] }]);
+  phones.setQueryData(['sms', 'devices'], [
+    { id: 'live', name: 'Live phone', createdAt: '2026-11-01T00:00:00Z', lastSeenAt: null, revokedAt: null },
+    { id: 'old', name: 'Old phone', createdAt: '2026-10-01T00:00:00Z', lastSeenAt: null, revokedAt: '2026-11-02T00:00:00Z' },
+  ]);
+  phones.setQueryData(['sms', 'review', 1], { items: [], meta: { total: 0, page: 1, pages: 0 } });
+  const list = renderToString(React.createElement(QueryClientProvider, { client: phones }, React.createElement(BankSms)));
+  assert.match(list, /Disconnect<span class="visually-hidden"> (?:<!-- -->)?Live phone/);
+  assert.match(list, /Remove<span class="visually-hidden"> (?:<!-- -->)?Old phone/);
+  assert.doesNotMatch(list, /Remove<span class="visually-hidden"> (?:<!-- -->)?Live phone/, 'a connected phone is disconnected first');
+  assert.doesNotMatch(list, /Disconnect<span class="visually-hidden"> (?:<!-- -->)?Old phone/);
+  phones.clear();
   console.log('SMS UI: header sender presets, account validation, HTTPS pairing payload, saved settings, query invalidation and initial markup passed.');
 } finally {
   await server.close(); globalThis.fetch = originalFetch;

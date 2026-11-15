@@ -67,7 +67,8 @@ export function describeAction(action, today) {
   switch (action.type) {
     case 'transaction': {
       // `match` (set by the server) means the bank already recorded this payment: saving annotates that row.
-      const bits = [d.categoryName || 'Uncategorised', d.paymentMode?.toUpperCase(), d.date !== today ? relativeDay(d.date, today) : null,
+      // A category the AI suggested is marked so it is never mistaken for one the person chose.
+      const bits = [d.categoryName ? (action.aiCategory ? `${d.categoryName} (AI)` : d.categoryName) : 'Uncategorised', d.paymentMode?.toUpperCase(), d.date !== today ? relativeDay(d.date, today) : null,
         action.match ? 'Will be matched to your bank payment, not added twice' : null];
       return { kind: d.direction === 'credit' ? 'income' : 'expense', title: `${d.direction === 'credit' ? 'Income' : 'Expense'} ${formatMoney(d.amount)} · ${d.description}`, detail: bits.filter(Boolean).join(' · ') };
     }
@@ -83,6 +84,12 @@ export function describeAction(action, today) {
       return { kind: 'note', title: `Note · ${d.text}`, detail: 'Goes to your capture inbox to sort out later' };
   }
 }
+
+/** True when the rules left a payment without a category, so the AI category lookup is worth asking for. */
+export const needsCategory = (proposal) => Boolean(proposal?.actions?.some((a) => a.type === 'transaction' && !a.data?.category));
+
+/** Saved as an AI capture when the AI read the text, or when any category on it came from the AI. */
+export const engineFor = (proposal, usedAi) => (usedAi || proposal?.actions?.some((a) => a.aiCategory) ? 'ai' : 'rules');
 
 /** Only a capture that is still saved can be undone (a replayed save may already have been undone). */
 export const canUndo = (result) => result?.capture?.status === 'done';

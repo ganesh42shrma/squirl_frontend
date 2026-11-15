@@ -13,4 +13,6 @@ function useSmsMutation(mutationFn) {
 }
 export const useSaveSmsAccounts = () => useSmsMutation((body) => api('/sms/accounts', { method: 'PUT', body }).then((r) => r.data.accounts));
 export const useRevokeSmsDevice = () => useSmsMutation((id) => api(`/sms/devices/${id}`, { method: 'DELETE' }));
+// Takes a disconnected phone off the list. The server only hides it (its messages must stay), and refuses a connected one.
+export const useRemoveSmsDevice = () => useSmsMutation((id) => api(`/sms/devices/${id}/remove`, { method: 'POST' }));
 export const useResolveSms = () => useSmsMutation(({ id, fields }) => api(`/sms/events/${id}/${fields ? 'confirm' : 'dismiss'}`, { method: 'POST', body: fields }).then((r) => r.data));

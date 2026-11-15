@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '../../components/ui/Button';
+import { SaveBar } from '../../components/ui/SaveBar';
+import { hasChanges, normalisePreferences } from '../../lib/settingsDraft';
 import { useToast } from '../../components/ui/Toast';
 import { api, describeError } from '../../api/client';
 import { clearBrowserPush, enablePush, getRegistration, getSubscription, paymentRepliesReady, supportsPush, updatePwa } from '../../pwa/client';
@@ -7,7 +9,10 @@ import { clearBrowserPush, enablePush, getRegistration, getSubscription, payment
 export function DeviceNotifications() {
   const toast = useToast();
   const [status, setStatus] = useState(null);
-  const [preferences, setPreferences] = useState(null);
+  const [preferences, setPreferences] = useState(null); // what's on screen
+  const [savedPreferences, setSavedPreferences] = useState(null); // what the server has
+  const [saveFailed, setSaveFailed] = useState(false);
+  const [saving, setSaving] = useState(false); // busy because of Save itself, not a test or turn-off
   const [endpoint, setEndpoint] = useState(null);
   const [workerReady, setWorkerReady] = useState(false);
   const [repliesReady, setRepliesReady] = useState(null);
@@ -24,7 +29,8 @@ export function DeviceNotifications() {
       if (cancelled) return;
       setEndpoint(subscription?.endpoint || null);
       setStatus(saved);
-      setPreferences(saved.preferences);
+      setPreferences(normalisePreferences(saved.preferences));
+      setSavedPreferences(normalisePreferences(saved.preferences));
       setWorkerReady(Boolean(worker?.active));
       const replies = await paymentRepliesReady();
       if (!cancelled) setRepliesReady(replies);
@@ -37,11 +43,22 @@ export function DeviceNotifications() {
     try { await fn(); } catch (e) { setError(describeError(e)); } finally { setBusy(false); }
   };
   const save = () => work(async () => {
-    const subscription = await getSubscription();
-    if (!subscription) throw new Error('Enable notifications on this device first.');
-    const saved = (await api('/notifications/subscription', { method: 'PUT', body: { subscription: subscription.toJSON(), preferences } })).data;
-    setStatus(saved);
-    toast('Saved');
+    setSaveFailed(false); setSaving(true);
+    try {
+      const subscription = await getSubscription();
+      if (!subscription) throw new Error('Enable notifications on this device first.');
+      const saved = (await api('/notifications/subscription', { method: 'PUT', body: { subscription: subscription.toJSON(), preferences } })).data;
+      setStatus(saved);
+      // The server's copy is now the baseline, so Save goes quiet until the next change.
+      setSavedPreferences(normalisePreferences(saved.preferences));
+      setPreferences(normalisePreferences(saved.preferences)); // show exactly what the server kept
+      toast('Notification settings saved');
+    } catch (e) {
+      setSaveFailed(true);
+      throw e;
+    } finally {
+      setSaving(false);
+    }
   });
   const enable = () => {
     // Permission is requested inside the button click; do not fetch settings before this call.
@@ -52,6 +69,7 @@ export function DeviceNotifications() {
       try {
         const saved = (await api('/notifications/subscription', { method: 'PUT', body: { subscription: subscription.toJSON(), preferences } })).data;
         setStatus(saved);
+        setSavedPreferences(normalisePreferences(saved.preferences));
         toast('Notifications enabled on this device');
       } catch (e) {
         await subscription.unsubscribe().catch(() => {});
@@ -74,6 +92,8 @@ export function DeviceNotifications() {
   });
   const set = (key, value) => setPreferences((p) => ({ ...p, [key]: value }));
   const enabled = status?.enabled && typeof Notification !== 'undefined' && Notification.permission === 'granted';
+  const dirty = Boolean(enabled) && hasChanges(preferences, savedPreferences);
+  const timesValid = Boolean(preferences?.dailyTime && preferences?.habitTime);
 
   return (
     <section className="profile-section" aria-labelledby="notifications-title">
@@ -82,7 +102,7 @@ export function DeviceNotifications() {
         <p>For this device. Tip: add Squirl to your home screen.</p>
       </div>
       <div className="profile-form">
-        <p role="status">{enabled ? 'On' : 'Off'}</p>
+        <p className={`settings-state${enabled ? ' settings-state--on' : ''}`} role="status">{enabled ? 'On for this device' : 'Off on this device'}</p>
         {!supported && <p>Not supported in this browser. Try Chrome.</p>}
         {status && !status.ready && <p>Not available yet.</p>}
         {supported && status?.ready && !workerReady && <p>Reload the page once to finish setup.</p>}
@@ -112,19 +132,27 @@ export function DeviceNotifications() {
             </label>
           </>
         )}
+        {preferences && !enabled && <p className="cm-hint">These choices are saved when you turn notifications on.</p>}
         {error && <p className="import-error" role="alert">{error}</p>}
-        <div className="profile-form__actions">
-          {enabled ? (
-            <>
-              <Button onClick={save} disabled={busy || !preferences.dailyTime || !preferences.habitTime}>Save</Button>
-              <Button variant="quiet" onClick={() => test()} disabled={busy}>Send test</Button>
-              <Button variant="quiet" onClick={() => test('sms_payment')} disabled={busy || !repliesReady}>Test payment alert</Button>
-            </>
-          ) : (
-            <Button onClick={enable} disabled={busy || !supported || !status?.ready || !workerReady || !preferences?.dailyTime || !preferences?.habitTime}>Turn on</Button>
-          )}
-          {(enabled || endpoint) && <Button variant="quiet" onClick={disable} disabled={busy}>Turn off</Button>}
-        </div>
+        {enabled ? (
+          <SaveBar
+            dirty={dirty}
+            pending={saving}
+            error={saveFailed}
+            invalid={!timesValid || (busy && !saving)}
+            onSave={save}
+            onDiscard={() => { setPreferences(savedPreferences); setSaveFailed(false); setError(''); }}
+          >
+            <Button variant="quiet" onClick={() => test()} disabled={busy}>Send test</Button>
+            <Button variant="quiet" onClick={() => test('sms_payment')} disabled={busy || !repliesReady}>Test payment alert</Button>
+            <Button variant="quiet" onClick={disable} disabled={busy}>Turn off</Button>
+          </SaveBar>
+        ) : (
+          <div className="profile-form__actions">
+            <Button onClick={enable} disabled={busy || !supported || !status?.ready || !workerReady || !timesValid}>Turn on</Button>
+            {endpoint && <Button variant="quiet" onClick={disable} disabled={busy}>Turn off</Button>}
+          </div>
+        )}
       </div>
     </section>
   );

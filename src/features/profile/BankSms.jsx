@@ -3,23 +3,32 @@ import { useQueryClient } from '@tanstack/react-query';
 import { api, describeError } from '../../api/client';
 import { Button } from '../../components/ui/Button';
 import { Dialog } from '../../components/ui/Dialog';
+import { SaveBar } from '../../components/ui/SaveBar';
+import { hasChanges } from '../../lib/settingsDraft';
 import { useToast } from '../../components/ui/Toast';
 import { useGuestMode } from '../../lib/useGuestMode';
 import { SMS_BANKS, SMS_REASONS, accountDraft, accountsPayload, pairingCode } from './smsSetup';
-import { useSmsAccounts, useSmsDevices, useSmsReview, useSaveSmsAccounts, useRevokeSmsDevice, useResolveSms } from './useSms';
+import { useSmsAccounts, useSmsDevices, useSmsReview, useSaveSmsAccounts, useRevokeSmsDevice, useRemoveSmsDevice, useResolveSms } from './useSms';
 
 function AccountSetup({ accounts }) {
   const [draft, setDraft] = useState(() => accountDraft(accounts));
+  const [baseline, setBaseline] = useState(() => accountDraft(accounts)); // what's saved: Save only matters when the draft differs
   const [error, setError] = useState('');
   const save = useSaveSmsAccounts();
   const toast = useToast();
-  useEffect(() => setDraft(accountDraft(accounts)), [accounts]);
+  useEffect(() => { setDraft(accountDraft(accounts)); setBaseline(accountDraft(accounts)); }, [accounts]);
+  const dirty = hasChanges(draft, baseline);
   const set = (bank, changes) => setDraft((d) => ({ ...d, [bank]: { ...d[bank], ...changes } }));
   const submit = (event) => {
     event.preventDefault(); setError('');
     let body;
     try { body = accountsPayload(draft); } catch (e) { setError(e.message); return; }
-    save.mutate(body, { onSuccess: () => toast('Saved') });
+    save.mutate(body, { onSuccess: (saved) => {
+      // Show what the server kept straight away; the refetch that follows agrees with it.
+      const next = accountDraft(saved);
+      setDraft(next); setBaseline(next);
+      toast('Bank settings saved');
+    } });
   };
   return <form className="profile-form" onSubmit={submit}>
     {Object.entries(SMS_BANKS).map(([bank, preset]) => <fieldset className="sms-bank" key={bank} disabled={save.isPending}>
@@ -36,13 +45,15 @@ function AccountSetup({ accounts }) {
       </>}
     </fieldset>)}
     {(error || save.isError) && <p className="import-error" role="alert">{error || describeError(save.error)}</p>}
-    <div><Button type="submit" disabled={save.isPending}>{save.isPending ? 'Saving…' : 'Save'}</Button></div>
+    <SaveBar submit dirty={dirty} idleText={accounts.length ? undefined : 'No bank set up yet'} pending={save.isPending} error={Boolean(error) || save.isError}
+      onDiscard={() => { setDraft(baseline); setError(''); save.reset(); }} />
   </form>;
 }
 
 function Devices({ accounts }) {
   const devices = useSmsDevices();
   const revoke = useRevokeSmsDevice();
+  const remove = useRemoveSmsDevice();
   const client = useQueryClient();
   const toast = useToast();
   const [name, setName] = useState('My phone');
@@ -75,9 +86,10 @@ function Devices({ accounts }) {
     {devices.data?.length === 0 && <p className="cm-hint">No phones connected.</p>}
     <ul className="sms-devices">{devices.data?.map((device) => <li key={device.id}>
       <div><strong>{device.name}</strong><p className="cm-hint">{device.revokedAt ? 'Disconnected' : device.lastSeenAt ? `Last message ${new Date(device.lastSeenAt).toLocaleString()}` : 'Waiting for first message'}</p></div>
+      {device.revokedAt && <Button variant="quiet" disabled={remove.isPending} onClick={() => remove.mutate(device.id, { onSuccess: () => toast('Phone removed from the list') })}>Remove<span className="visually-hidden"> {device.name}</span></Button>}
       {!device.revokedAt && <Button variant="quiet" disabled={revoke.isPending} onClick={() => revoke.mutate(device.id, { onSuccess: () => { if (pair?.device.id === device.id) setPair(null); toast('Phone disconnected'); } })}>Disconnect<span className="visually-hidden"> {device.name}</span></Button>}
     </li>)}</ul>
-    {(error || revoke.isError) && <p className="import-error" role="alert">{error || describeError(revoke.error)}</p>}
+    {(error || revoke.isError || remove.isError) && <p className="import-error" role="alert">{error || describeError(revoke.error || remove.error)}</p>}
     {pair && <Dialog title="Connect your phone" onClose={() => setPair(null)} footer={<Button onClick={() => setPair(null)}>Done</Button>}>
       <div className="profile-form">
         <p>Copy the code and paste it into the Squirl SMS app on your phone.</p>

@@ -1,7 +1,7 @@
 // Command palette logic in plain Node: page commands, ranking, how proposed actions and search
 // results read (with guest mode hiding amounts), and where results open.
 import assert from 'node:assert/strict';
-import { navCommands, rankCommands, scoreCommand, describeAction, describeResult, savedMessage, resultLink, relativeDay, undoMessage, newClientId, submissionFor, canUndo } from '../src/features/capture/paletteModel.js';
+import { navCommands, rankCommands, scoreCommand, describeAction, describeResult, savedMessage, resultLink, relativeDay, undoMessage, newClientId, submissionFor, canUndo, needsCategory, engineFor } from '../src/features/capture/paletteModel.js';
 import { setGuestMode } from '../src/lib/guestMode.js';
 
 // A tiny registry shaped like app/modules.js (the real one imports React pages).
@@ -101,6 +101,20 @@ assert.equal(resultLink({ kind: 'capture' }), null, 'inbox notes open inside the
 assert.equal(describeResult({ kind: 'transaction', title: 'Swiggy', amount: 450, date: '2026-11-10', direction: 'debit' }, today).detail, '₹450 · 10 Nov');
 assert.equal(describeResult({ kind: 'task', title: 'x', status: 'open', dueDate: today }, today).detail, 'Due Today');
 assert.equal(describeResult({ kind: 'habit', title: 'Gym', streak: 4 }, today).detail, '4-day streak');
+
+// An AI-suggested category is labelled, and only an uncategorised payment makes the palette ask for one.
+const suggested = { ...expense, aiCategory: true };
+assert.equal(describeAction(suggested, today).detail, 'Cafes & Coffee (AI) · UPI');
+assert.equal(describeAction(expense, today).detail, 'Cafes & Coffee · UPI', 'a rules or typed category carries no label');
+const bare = { type: 'transaction', data: { ...expense.data, categoryName: undefined, category: undefined } };
+assert.equal(needsCategory({ actions: [bare] }), true);
+assert.equal(needsCategory({ actions: [{ ...expense, data: { ...expense.data, category: 'c1' } }] }), false);
+assert.equal(needsCategory({ actions: [{ type: 'task', data: { title: 'x' } }] }), false, 'tasks never need a category');
+assert.equal(needsCategory({ actions: [] }), false);
+assert.equal(needsCategory(null), false);
+assert.equal(engineFor({ actions: [bare] }, false), 'rules');
+assert.equal(engineFor({ actions: [suggested] }, false), 'ai', 'a payment filed by the AI is saved as an AI capture');
+assert.equal(engineFor({ actions: [bare] }, true), 'ai');
 
 // Guest mode hides every amount the palette shows.
 setGuestMode(true);

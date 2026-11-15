@@ -9,8 +9,8 @@ import { describeError } from '../../api/client';
 import { useToast } from '../../components/ui/Toast';
 import { useDebouncedValue } from '../../lib/hooks';
 import { todayISO } from '../../lib/format';
-import { navCommands, rankCommands, describeAction, describeResult, resultLink, savedMessage, canUndo, undoMessage, submissionFor, EXAMPLES } from './paletteModel';
-import { useAiPreview, useCaptureInbox, useCapturePreview, useCaptureSearch, useCommitCapture, useDismissCapture, useUndoCapture } from './useCapture';
+import { navCommands, rankCommands, describeAction, describeResult, resultLink, savedMessage, canUndo, undoMessage, submissionFor, needsCategory, engineFor, EXAMPLES } from './paletteModel';
+import { useAiCategories, useAiPreview, useCaptureInbox, useCapturePreview, useCaptureSearch, useCommitCapture, useDismissCapture, useUndoCapture } from './useCapture';
 import './capture.css';
 
 const ICONS = { expense: Receipt, income: HandCoins, task: CheckSquare, habit: Flame, note: NotePencil, goal: Target, bill: CalendarCheck, nav: ArrowRight, ai: Sparkle, inbox: Tray };
@@ -41,6 +41,8 @@ export function CommandPalette({ onClose, startIn = 'all' }) {
   const submission = useRef(null); // { fingerprint, clientId } of the save in flight or last failed
   const debounced = useDebouncedValue(text.trim(), 180);
 
+  const settled = useDebouncedValue(text.trim(), 600); // longer pause: the category lookup may call a cloud model
+
   const preview = useCapturePreview(debounced);
   const search = useCaptureSearch(debounced);
   const inbox = useCaptureInbox();
@@ -63,7 +65,10 @@ export function CommandPalette({ onClose, startIn = 'all' }) {
   const typed = text.trim();
   const fresh = preview.data && debounced === typed ? preview.data : null;
   const useAiResult = ai && ai.text === typed;
-  const proposal = useAiResult ? ai : fresh;
+  const wantsCategory = !useAiResult && settled === typed && debounced === typed && needsCategory(fresh);
+  const categorised = useAiCategories(settled, wantsCategory);
+  const withCategory = wantsCategory && categorised.data?.aiCategories > 0 ? categorised.data : null;
+  const proposal = useAiResult ? ai : withCategory || fresh;
   const today = proposal?.today || preview.data?.today || todayISO();
   const understood = Boolean(proposal?.understood);
 
@@ -96,7 +101,7 @@ export function CommandPalette({ onClose, startIn = 'all' }) {
         text: typed,
         ...(proposal?.actions?.length && { actions: proposal.actions.map(({ type, data }) => ({ type, data })) }),
         ...(inboxItem && { inboxId: inboxItem._id }),
-        engine: useAiResult ? 'ai' : 'rules',
+        engine: engineFor(proposal, useAiResult),
       };
       // Pressing Enter again after a failure (or a dropped connection) is the same save, not a second one.
       submission.current = submissionFor(submission.current, body);
