@@ -14,8 +14,8 @@ export function PersonPicker({ onPick, selectedId, disabled = false }) {
   const total = data?.meta?.circle ?? 0;
   return (
     <div className="circle-picker">
-      <div className="ledger-search">
-        <MagnifyingGlass size={16} aria-hidden="true" className="ledger-search__icon" />
+      <div className="circle-search">
+        <MagnifyingGlass size={16} aria-hidden="true" className="circle-search__icon" />
         <input className="input" type="search" autoComplete="off" placeholder="Search your circle" value={text} onChange={(e) => setText(e.target.value)} aria-label="Search your circle" />
       </div>
       {isError && <p className="import-error" role="alert">Your circle couldn’t load.</p>}

@@ -10,7 +10,7 @@ import { useCreatePerson, useUpdatePerson } from './useCircle';
 import '../profile/profile.css';
 import './circle.css';
 
-/** Add or edit one person: name, numbers, and whether they are family (relationship and statement names only matter then). */
+/** Add or edit one person: name, numbers, and whether they are family (relationship and statement names only show then). */
 export function PersonEditor({ person, onClose }) {
   const editing = Boolean(person);
   const [form, setForm] = useState(() => personDraft(person));
@@ -57,7 +57,7 @@ export function PersonEditor({ person, onClose }) {
             <button type="button" className="link-button circle-add-phone" onClick={() => setForm((prev) => ({ ...prev, phones: [...prev.phones, ''] }))}><Plus size={12} weight="bold" aria-hidden="true" /> Add another number</button>
           )}
         </div>
-        <label className="check-row"><input type="checkbox" checked={form.isFamily} onChange={(e) => setForm((prev) => ({ ...prev, isFamily: e.target.checked }))} /> Family</label>
+        <label className="circle-check"><input type="checkbox" checked={form.isFamily} onChange={(e) => setForm((prev) => ({ ...prev, isFamily: e.target.checked }))} /> Family</label>
         <p className="member-hint">Payments to family go to the Family category, including past ones. Everyone else just gets a name next to their payments.</p>
         {form.isFamily && (
           <>

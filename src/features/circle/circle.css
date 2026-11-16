@@ -7,8 +7,15 @@
 .circle-import__help summary { cursor: pointer; }
 .circle-import__help p { margin: 6px 0 0; }
 
+/* The search box and tick rows are styled here, not borrowed from the ledger or tasks stylesheets: those load
+   only once their own pages have been opened, and Settings can be the first page someone visits. */
+.circle-search { position: relative; display: flex; align-items: center; min-width: 0; }
+.circle-search__icon { position: absolute; left: 12px; color: var(--ink-faint); pointer-events: none; }
+.circle-search .input { flex: 1; min-width: 0; padding-left: 36px; }
+.circle-check { display: flex; align-items: center; gap: 10px; font-size: var(--text-sm); }
+.circle-check input, .circle-family input { accent-color: var(--clay); width: 18px; height: 18px; flex: none; }
 .circle-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.circle-tools .ledger-search { flex: 1 1 220px; }
+.circle-tools .circle-search { flex: 1 1 220px; }
 .circle-list { max-height: none; overflow: visible; }
 .circle-list.is-refreshing { opacity: 0.6; }
 .circle-family { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; font-size: var(--text-sm); }

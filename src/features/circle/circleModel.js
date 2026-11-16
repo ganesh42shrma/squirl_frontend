@@ -33,24 +33,36 @@ export function describeImport(summary) {
   const lines = [];
   if (summary.added) lines.push(`Added ${count(summary.added, 'person', 'people')}.`);
   if (summary.merged) lines.push(`Added new numbers to ${count(summary.merged, 'person', 'people')} you already had.`);
-  if (summary.unchanged) lines.push(`${count(summary.unchanged, 'contact')} already in your circle.`);
-  if (summary.heldBack) lines.push(`Family keep the numbers you gave them: ${count(summary.heldBack, 'family member')} had extra numbers in your phone book that weren’t added.`);
+  // heldBack contacts are counted inside `unchanged` by the server; they get their own sentence here.
+  const held = summary.heldBack || 0;
+  const same = (summary.unchanged || 0) - held;
+  if (same > 0) lines.push(`${count(same, 'contact')} already in your circle.`);
+  if (held) {
+    lines.push(`${count(held, 'family member')} ${held === 1 ? 'has' : 'have'} other numbers in your phone book. Those weren’t added, because a family member’s numbers decide which payments go to Family. To add one, use Edit next to their name.`);
+  }
   if (summary.skipped) lines.push(`Skipped ${count(summary.skipped, 'contact')} with no name or no Indian mobile number.`);
   if (!lines.length) lines.push('That file had no contacts in it.');
   return lines;
 }
 
-/** The editor's form → the body the API wants. Relationship and alternate names only apply to family. */
+/**
+ * The editor's form → the body the API wants. Relationship and alternate names are only shown (and only matter)
+ * for family, but unticking Family keeps them, exactly as the Family switch in the list does: ticking it again
+ * later brings them back instead of making someone retype them.
+ */
 export function personBody(form) {
   const phones = [...new Set(form.phones.map(localPhone).filter(Boolean))];
   return {
     name: form.name.trim(),
     phones,
     isFamily: form.isFamily,
-    relationship: form.isFamily ? form.relationship : '',
-    aliases: form.isFamily ? [...new Set(form.aliases.split(',').map((a) => a.trim()).filter(Boolean))] : [],
+    relationship: form.relationship,
+    aliases: [...new Set(form.aliases.split(',').map((a) => a.trim()).filter(Boolean))],
   };
 }
+
+/** What to say after the Family switch is flipped for someone. */
+export const familyToast = (name, isFamily) => (isFamily ? `${name} is family. Updating past payments…` : `${name} is no longer family. Updating past payments…`);
 
 export const personDraft = (person) => ({
   name: person?.name || '',
