@@ -15,6 +15,7 @@ export function PersonEditor({ person, onClose }) {
   const editing = Boolean(person);
   const [form, setForm] = useState(() => personDraft(person));
   const [problem, setProblem] = useState('');
+  const [confirmBody, setConfirmBody] = useState(null);
   const create = useCreatePerson();
   const update = useUpdatePerson();
   const save = editing ? update : create;
@@ -22,16 +23,40 @@ export function PersonEditor({ person, onClose }) {
   const set = (key) => (e) => setForm((prev) => ({ ...prev, [key]: e.target.value }));
   const setPhone = (index, value) => setForm((prev) => ({ ...prev, phones: prev.phones.map((p, i) => (i === index ? value.replace(/[^\d+\s-]/g, '') : p)) }));
 
+  const saveBody = (body) => {
+    const done = { onSuccess: () => { toast(editing ? 'Saved' : 'Added to your circle'); onClose(); } };
+    if (editing) update.mutate({ id: person._id, ...body }, done);
+    else create.mutate(body, done);
+  };
+
   const submit = (e) => {
     e.preventDefault();
     const found = draftProblem(form);
     setProblem(found);
     if (found) return;
     const body = personBody(form);
-    const done = { onSuccess: () => { toast(editing ? 'Saved' : 'Added to your circle'); onClose(); } };
-    if (editing) update.mutate({ id: person._id, ...body }, done);
-    else create.mutate(body, done);
+    const before = personBody(personDraft(person));
+    const affectsFamily = (before.isFamily || body.isFamily) && (
+      before.isFamily !== body.isFamily || before.name !== body.name ||
+      JSON.stringify(before.phones.slice().sort()) !== JSON.stringify(body.phones.slice().sort()) ||
+      JSON.stringify(before.aliases) !== JSON.stringify(body.aliases)
+    );
+    if (affectsFamily) setConfirmBody(body);
+    else saveBody(body);
   };
+
+  if (confirmBody) return (
+    <Dialog title="Update family payments?" onClose={() => setConfirmBody(null)} footer={
+      <>
+        <Button variant="quiet" onClick={() => setConfirmBody(null)}>Back</Button>
+        <Button disabled={save.isPending} onClick={() => saveBody(confirmBody)}>{save.isPending ? 'Saving…' : 'Save changes'}</Button>
+      </>
+    }>
+      <p>{confirmBody.isFamily ? 'Payments matching this person can move to Family, including past payments you sorted yourself.' : 'Payments in Family matching this person can move to Other.'}</p>
+      <p className="member-hint">Payments removed from Family move to Other; their previous categories aren’t restored.</p>
+      {save.isError && <p className="import-error" role="alert">{describeError(save.error)}</p>}
+    </Dialog>
+  );
 
   return (
     <Dialog title={editing ? 'Edit person' : 'Add a person'} onClose={onClose} footer={

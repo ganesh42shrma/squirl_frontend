@@ -31,6 +31,16 @@
 .circle-picker__item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 6px; border: 0; border-bottom: 1px solid var(--line); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .circle-picker__item:hover:not(:disabled), .circle-picker__item.is-selected { background: var(--stone); }
 
-@media (max-width: 420px) {
-  .circle-family { margin-left: 48px; }
+@media (max-width: 640px) {
+  .circle-list .member-list-item {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    align-items: start;
+  }
+  .circle-list .member-avatar { grid-row: 1 / 3; }
+  .circle-list .member-list-info { grid-column: 2 / 4; }
+  .circle-list .circle-family { grid-column: 2; margin: 0; min-height: 36px; }
+  .circle-list .member-list-actions { grid-column: 3; margin: 0; align-self: center; }
+  .circle-list .member-list-actions button { min-height: 36px; }
 }

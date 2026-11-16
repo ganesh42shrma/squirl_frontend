@@ -28,12 +28,12 @@ export function ImportContacts() {
           <UploadSimple size={16} aria-hidden="true" /> {importing.isPending ? 'Importing…' : 'Import contacts'}
         </Button>
         <input ref={input} type="file" accept=".vcf,.vcard,text/vcard,text/x-vcard,text/directory,text/plain" hidden onChange={pick} aria-label="Choose a contacts file" />
-        <span className="member-hint">A .vcf file from your phone. It stays on your Squirl computer and is never sent to an AI.</span>
+        <span className="member-hint">Import a .vcf file from your phone. It stays on this computer.</span>
       </div>
       {importing.isSuccess && (
         <div className="circle-import__result" role="status">
           {describeImport(importing.data).map((line) => <p key={line}>{line}</p>)}
-          <p className="member-hint">Nobody is marked as family by an import, and your payments’ categories don’t change.</p>
+          <p className="member-hint">Imports don’t mark family or change categories.</p>
         </div>
       )}
       {(importing.isError || tooBig) && <p className="import-error" role="alert">{tooBig ? 'That file is too big. The limit is 20 MB.' : describeError(importing.error)}</p>}

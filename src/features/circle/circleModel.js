@@ -38,7 +38,7 @@ export function describeImport(summary) {
   const same = (summary.unchanged || 0) - held;
   if (same > 0) lines.push(`${count(same, 'contact')} already in your circle.`);
   if (held) {
-    lines.push(`${count(held, 'family member')} ${held === 1 ? 'has' : 'have'} other numbers in your phone book. Those weren’t added, because a family member’s numbers decide which payments go to Family. To add one, use Edit next to their name.`);
+    lines.push(`Kept existing numbers for ${count(held, 'family member')}. Edit them to add numbers; this can change payment categories.`);
   }
   if (summary.skipped) lines.push(`Skipped ${count(summary.skipped, 'contact')} with no name or no Indian mobile number.`);
   if (!lines.length) lines.push('That file had no contacts in it.');

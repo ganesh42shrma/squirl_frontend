@@ -21,7 +21,8 @@ export function YourCircle() {
   const [familyOnly, setFamilyOnly] = useState(false);
   const [page, setPage] = useState(1);
   const [editor, setEditor] = useState(null); // { person } — person null means a new one
-  const [marking, setMarking] = useState(null); // the person about to be marked family, while we ask
+  const [marking, setMarking] = useState(null); // { person, isFamily }: a family change we are asking about
+  const [removing, setRemoving] = useState(null);
   const search = useDebouncedValue(text.trim(), 250);
   const { data, isLoading, isError, error, isFetching } = usePeople({ search: search || undefined, family: familyOnly || undefined, page, limit: PAGE_SIZE });
   const { data: sync } = useFamilySync();
@@ -36,12 +37,13 @@ export function YourCircle() {
   useEffect(() => { if (meta && page > Math.max(meta.pages, 1)) setPage(Math.max(meta.pages, 1)); }, [meta, page]);
   // The ticked value is read now: by the time the save finishes, the box has been redrawn from the old list.
   const setFamily = (p, isFamily) => update.mutate({ id: p._id, isFamily }, { onSuccess: () => toast(familyToast(p.name, isFamily)) });
+  const removePerson = (p) => remove.mutate(p._id, { onSuccess: () => { setRemoving(null); toast(p.isFamily ? `${p.name} removed. Updating past payments…` : `${p.name} removed`); } });
 
   return (
     <section className="profile-section" aria-labelledby="circle-title">
       <div className="profile-section__head">
         <h2 id="circle-title">Your circle</h2>
-        <p>Everyone you know. Payments to people marked Family go to the Family category. Everyone else just gets their name next to their payments.</p>
+        <p>See names beside payments. Mark family to sort their payments into Family.</p>
       </div>
       <div className="member-list-panel">
         <ImportContacts />
@@ -71,12 +73,12 @@ export function YourCircle() {
                 <span className="member-hint">{personSubtitle(p) || 'No number'}</span>
               </div>
               <label className="circle-family" title="Payments to family go to the Family category">
-                <input type="checkbox" checked={p.isFamily} disabled={busy} onChange={(e) => (e.target.checked ? setMarking(p) : setFamily(p, false))} aria-label={`${p.name} is family`} />
+                <input type="checkbox" checked={p.isFamily} disabled={busy} onChange={(e) => setMarking({ person: p, isFamily: e.target.checked })} aria-label={`${p.name} is family`} />
                 Family
               </label>
               <div className="member-list-actions">
                 <button type="button" className="link-button" disabled={busy} aria-label={`Edit ${p.name}`} onClick={() => setEditor({ person: p })}>Edit</button>
-                <button type="button" className="link-button" disabled={busy} aria-label={`Remove ${p.name}`} onClick={() => remove.mutate(p._id, { onSuccess: () => toast(p.isFamily ? `${p.name} removed. Updating past payments…` : `${p.name} removed`) })}>Remove</button>
+                <button type="button" className="link-button" disabled={busy} aria-label={`Remove ${p.name}`} onClick={() => p.isFamily ? setRemoving(p) : removePerson(p)}>Remove</button>
               </div>
             </li>
           ))}
@@ -91,18 +93,38 @@ export function YourCircle() {
         )}
       </div>
       {editor && <PersonEditor person={editor.person} onClose={() => setEditor(null)} />}
-      {/* One stray tap in a long list would otherwise re-sort past payments, and unticking does not put them back. */}
-      {marking && (
-        <Dialog title={`Mark ${marking.name} as family?`} onClose={() => setMarking(null)} footer={
+      {removing && <Dialog title={`Remove ${removing.name}?`} onClose={() => setRemoving(null)} footer={
+        <>
+          <Button variant="quiet" onClick={() => setRemoving(null)}>Cancel</Button>
+          <Button disabled={remove.isPending} onClick={() => removePerson(removing)}>Remove</Button>
+        </>
+      }>
+        <p>Payments in Family matching this person will move to Other. Their previous categories won’t be restored.</p>
+        {remove.isError && <p className="import-error" role="alert">{describeError(remove.error)}</p>}
+      </Dialog>}
+      {/* One stray tap in a long list would otherwise re-sort past payments, in either direction, and neither
+          change can be undone exactly: unticking moves payments to Other, not back to where they were. */}
+      {marking && (marking.isFamily ? (
+        <Dialog title={`Mark ${marking.person.name} as family?`} onClose={() => setMarking(null)} footer={
           <>
             <Button variant="quiet" onClick={() => setMarking(null)}>Cancel</Button>
-            <Button onClick={() => { setFamily(marking, true); setMarking(null); }}>Mark as family</Button>
+            <Button onClick={() => { setFamily(marking.person, true); setMarking(null); }}>Mark as family</Button>
           </>
         }>
-          <p>Payments to {marking.name}, past and future, will go to the Family category. That includes payments you sorted yourself.</p>
+          <p>Payments to {marking.person.name}, past and future, will go to the Family category. That includes payments you sorted yourself.</p>
           <p className="member-hint">If you change your mind later, those payments move to Other. They don’t go back to where they were.</p>
         </Dialog>
-      )}
+      ) : (
+        <Dialog title={`${marking.person.name} is no longer family?`} onClose={() => setMarking(null)} footer={
+          <>
+            <Button variant="quiet" onClick={() => setMarking(null)}>Keep as family</Button>
+            <Button onClick={() => { setFamily(marking.person, false); setMarking(null); }}>Not family</Button>
+          </>
+        }>
+          <p>Payments to {marking.person.name} that are in the Family category will move to Other.</p>
+          <p className="member-hint">They won’t go back to the categories they had before you marked {marking.person.name} as family. {marking.person.name} stays in your circle.</p>
+        </Dialog>
+      ))}
     </section>
   );
 }

@@ -27,9 +27,9 @@ assert.deepEqual(describeImport({ cards: 400, added: 212, merged: 1, unchanged: 
 // Family members whose extra numbers were held back are explained once, and not also counted as "already in your circle".
 assert.deepEqual(describeImport({ cards: 2, added: 0, merged: 0, unchanged: 2, skipped: 0, heldBack: 1 }), [
   '1 contact already in your circle.',
-  '1 family member has other numbers in your phone book. Those weren’t added, because a family member’s numbers decide which payments go to Family. To add one, use Edit next to their name.',
+  'Kept existing numbers for 1 family member. Edit them to add numbers; this can change payment categories.',
 ]);
-assert.deepEqual(describeImport({ cards: 3, added: 0, merged: 0, unchanged: 3, skipped: 0, heldBack: 3 }).map((l) => l.slice(0, 26)), ['3 family members have othe']);
+assert.deepEqual(describeImport({ cards: 3, added: 0, merged: 0, unchanged: 3, skipped: 0, heldBack: 3 }), ['Kept existing numbers for 3 family members. Edit them to add numbers; this can change payment categories.']);
 assert.deepEqual(describeImport({ cards: 0, added: 0, merged: 0, unchanged: 0, skipped: 0, heldBack: 0 }), ['That file had no contacts in it.']);
 assert.equal(describeImport({ added: 1200, merged: 0, unchanged: 0, skipped: 0, heldBack: 0, cards: 1200 })[0], 'Added 1,200 people.');
 
