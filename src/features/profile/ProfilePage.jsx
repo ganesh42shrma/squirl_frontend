@@ -49,25 +49,29 @@ function Details({ profile }) {
           Email
           <input className="input" type="email" value={form.email} onChange={set('email')} required autoComplete="email" />
         </label>
-        <label className="field">
-          Mobile number
-          <input className="input" type="tel" value={form.phone} onChange={set('phone')} maxLength={32} autoComplete="tel" placeholder="+91 98765 43210" />
-        </label>
-        <label className="field">
-          Date of birth
-          <input className="input" type="date" value={form.birthday} onChange={set('birthday')} min="1900-01-01" max={today()} autoComplete="bday" />
-        </label>
-        <label className="field">
-          City
-          <input className="input" value={form.city} onChange={set('city')} maxLength={80} autoComplete="address-level2" />
-        </label>
-        <label className="field">
-          Preferred currency
-          <select className="input" value={form.currency} onChange={set('currency')}>
-            <option value="">Not set</option>
-            {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </label>
+        <div className="profile-form__row">
+          <label className="field">
+            Mobile number
+            <input className="input" type="tel" value={form.phone} onChange={set('phone')} maxLength={32} autoComplete="tel" placeholder="+91 98765 43210" />
+          </label>
+          <label className="field">
+            Date of birth
+            <input className="input" type="date" value={form.birthday} onChange={set('birthday')} min="1900-01-01" max={today()} autoComplete="bday" />
+          </label>
+        </div>
+        <div className="profile-form__row">
+          <label className="field">
+            City
+            <input className="input" value={form.city} onChange={set('city')} maxLength={80} autoComplete="address-level2" />
+          </label>
+          <label className="field">
+            Preferred currency
+            <select className="input" value={form.currency} onChange={set('currency')}>
+              <option value="">Not set</option>
+              {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </label>
+        </div>
         <label className="field">
           About you
           <textarea className="input" value={form.bio} onChange={set('bio')} maxLength={200} rows={3} />

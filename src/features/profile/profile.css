@@ -35,6 +35,7 @@
 }
 
 .avatar {
+  flex: none;
   overflow: hidden;
 }
 
@@ -50,17 +51,20 @@
   font-size: var(--text-2xl, 1.5rem);
 }
 
+/* Picture + its buttons. Stacked so the header column is only as wide as the buttons; on a phone the header
+   itself stacks (see the 640px rule below), so nothing here can be wider than the screen. */
 .avatar-edit {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+  position: relative;
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  min-width: 0;
 }
 
 .avatar-edit__actions {
   display: flex;
-  gap: 8px;
   flex-wrap: wrap;
+  gap: 8px;
 }
 
 .avatar-edit__file {
@@ -71,9 +75,42 @@
   pointer-events: none;
 }
 
+.avatar-edit .import-error {
+  max-width: 240px;
+  overflow-wrap: anywhere;
+}
+
+/* Textareas share .input, which is built for one line: give the text room. */
 .field textarea.input {
   min-height: 84px;
+  padding: 10px 12px;
+  line-height: 1.45;
   resize: vertical;
+}
+
+/* iOS draws date and select controls at their own width unless told otherwise. */
+.field .input[type='date'],
+.field select.input {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.field .input[type='date'] {
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  line-height: 40px;
+}
+
+/* Short fields sit side by side when there is room (two across at about 360px and up) and stack otherwise. */
+.profile-form__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 16px;
+}
+
+.profile-form__row > * {
+  min-width: 0;
 }
 
 .avatar--large {
@@ -321,13 +358,39 @@
 }
 
 @media (max-width: 640px) {
+  /* One column: picture and buttons, then who you are, then Sign out. Side by side would not fit. */
   .profile-head {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .profile-head h2 {
+    font-size: var(--text-2xl);
   }
 
   .profile-head .btn {
-    grid-column: 1 / -1;
     justify-self: start;
+  }
+
+  .avatar--xl {
+    width: 80px;
+    height: 80px;
+  }
+
+  .avatar-edit {
+    grid-auto-flow: column;
+    justify-content: start;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .avatar-edit .import-error {
+    grid-column: 1 / -1;
+    max-width: none;
+  }
+
+  .profile {
+    gap: 28px;
   }
 
   .profile-section {
