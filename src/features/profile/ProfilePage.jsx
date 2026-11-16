@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Dialog } from '../../components/ui/Dialog';
@@ -6,23 +6,31 @@ import { useToast } from '../../components/ui/Toast';
 import { describeError } from '../../api/client';
 import { formatDate } from '../../lib/format';
 import { PasswordField } from '../auth/AuthLayout';
+import { Avatar } from './Avatar';
+import { DEFAULT_MAX_UPLOAD_BYTES, ImageError, compressImage, validateImageFile } from '../media/imageTools';
+import { useMediaStatus, useRemoveAvatar, useUploadAvatar } from '../media/useMedia';
 import { useChangePassword, useDeleteAccount, useLogout, useProfile, useUpdateProfile } from '../auth/useAuth';
 import '../../components/layout/layout.css';
 import '../auth/auth.css';
 import './profile.css';
 
+const DETAIL_FIELDS = ['name', 'email', 'phone', 'birthday', 'city', 'currency', 'bio'];
+const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD', 'AUD', 'CAD'];
+const formOf = (profile) => Object.fromEntries(DETAIL_FIELDS.map((k) => [k, profile[k] ?? '']));
+const today = () => new Date().toISOString().slice(0, 10);
+
 function Details({ profile }) {
   const update = useUpdateProfile();
   const toast = useToast();
-  const [form, setForm] = useState({ name: profile.name, email: profile.email });
-  useEffect(() => setForm({ name: profile.name, email: profile.email }), [profile.name, profile.email]);
-  const changed = form.name.trim() !== profile.name || form.email.trim().toLowerCase() !== profile.email;
+  const [form, setForm] = useState(() => formOf(profile));
+  useEffect(() => setForm(formOf(profile)), [profile]);
+  const clean = (key, value) => (key === 'email' ? value.trim().toLowerCase() : value.trim());
+  const dirty = DETAIL_FIELDS.filter((key) => clean(key, form[key]) !== (profile[key] ?? ''));
+  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const submit = (e) => {
     e.preventDefault();
-    const body = {};
-    if (form.name.trim() !== profile.name) body.name = form.name;
-    if (form.email.trim().toLowerCase() !== profile.email) body.email = form.email;
+    const body = Object.fromEntries(dirty.map((key) => [key, key === 'name' || key === 'email' ? form[key] : clean(key, form[key])]));
     update.mutate(body, { onSuccess: () => toast('Profile saved') });
   };
 
@@ -30,29 +38,108 @@ function Details({ profile }) {
     <section className="profile-section" aria-labelledby="details-title">
       <div className="profile-section__head">
         <h2 id="details-title">Your details</h2>
+        <p>Only you can see these.</p>
       </div>
       <form className="profile-form" onSubmit={submit}>
         <label className="field">
           Name
-          <input className="input" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} required maxLength={80} autoComplete="name" />
+          <input className="input" value={form.name} onChange={set('name')} required maxLength={80} autoComplete="name" />
         </label>
         <label className="field">
           Email
-          <input className="input" type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} required autoComplete="email" />
+          <input className="input" type="email" value={form.email} onChange={set('email')} required autoComplete="email" />
+        </label>
+        <label className="field">
+          Mobile number
+          <input className="input" type="tel" value={form.phone} onChange={set('phone')} maxLength={32} autoComplete="tel" placeholder="+91 98765 43210" />
+        </label>
+        <label className="field">
+          Date of birth
+          <input className="input" type="date" value={form.birthday} onChange={set('birthday')} min="1900-01-01" max={today()} autoComplete="bday" />
+        </label>
+        <label className="field">
+          City
+          <input className="input" value={form.city} onChange={set('city')} maxLength={80} autoComplete="address-level2" />
+        </label>
+        <label className="field">
+          Preferred currency
+          <select className="input" value={form.currency} onChange={set('currency')}>
+            <option value="">Not set</option>
+            {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </label>
+        <label className="field">
+          About you
+          <textarea className="input" value={form.bio} onChange={set('bio')} maxLength={200} rows={3} />
+          <span className="auth__hint">{form.bio.length}/200</span>
         </label>
         {update.isError && <p className="import-error">{describeError(update.error)}</p>}
         <div className="profile-form__actions">
-          <Button type="submit" disabled={!changed || update.isPending}>
+          <Button type="submit" disabled={!dirty.length || update.isPending}>
             {update.isPending ? 'Saving…' : 'Save changes'}
           </Button>
-          {changed && (
-            <Button variant="quiet" onClick={() => setForm({ name: profile.name, email: profile.email })}>
+          {dirty.length > 0 && (
+            <Button variant="quiet" onClick={() => setForm(formOf(profile))}>
               Cancel
             </Button>
           )}
         </div>
       </form>
     </section>
+  );
+}
+
+// Picture: pick a photo, it is cropped to a square and shrunk in the browser (which also strips location data),
+// then replaces the old one. Hidden when the server has no photo storage set up.
+function AvatarEditor({ profile }) {
+  const status = useMediaStatus();
+  const upload = useUploadAvatar();
+  const remove = useRemoveAvatar();
+  const toast = useToast();
+  const input = useRef(null);
+  const [error, setError] = useState('');
+  const busy = upload.isPending || remove.isPending;
+  const maxBytes = status.data?.maxBytes ?? DEFAULT_MAX_UPLOAD_BYTES;
+
+  const choose = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // picking the same file again should still fire
+    if (!file) return;
+    setError('');
+    const problem = validateImageFile(file);
+    if (problem) return setError(problem);
+    try {
+      const blob = await compressImage(file, { maxSide: 512, square: true });
+      if (blob.size > maxBytes) return setError('That photo is still too big. Try a smaller one.');
+      await upload.mutateAsync(blob);
+      toast('Profile picture updated');
+    } catch (err) {
+      setError(err instanceof ImageError ? err.message : describeError(err));
+    }
+  };
+
+  const clear = () => {
+    setError('');
+    remove.mutate(undefined, { onSuccess: () => toast('Profile picture removed'), onError: (err) => setError(describeError(err)) });
+  };
+
+  const enabled = status.data?.configured;
+  return (
+    <div className="avatar-edit">
+      <Avatar name={profile.name} mediaId={profile.avatarMediaId} xl />
+      {enabled && (
+        <div>
+          <div className="avatar-edit__actions">
+            <input ref={input} className="avatar-edit__file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={choose} tabIndex={-1} aria-label="Choose a profile picture" />
+            <Button variant="quiet" disabled={busy} onClick={() => input.current?.click()}>
+              {upload.isPending ? 'Uploading…' : profile.avatarMediaId ? 'Change picture' : 'Upload picture'}
+            </Button>
+            {profile.avatarMediaId && <Button variant="quiet" disabled={busy} onClick={clear}>Remove</Button>}
+          </div>
+          {error && <p className="import-error" role="alert">{error}</p>}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -184,24 +271,18 @@ export function ProfilePage() {
   if (isLoading) return <div className="insight-skeleton" />;
   if (isError) return <p className="import-error">{error.message}</p>;
 
-  const initials = profile.name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-
   return (
     <div className="profile">
       <header className="profile-head">
-        <span className="avatar avatar--large" aria-hidden="true">
-          {initials}
-        </span>
+        <AvatarEditor profile={profile} />
         <div>
           <h2>{profile.name}</h2>
           <p>
             {profile.email} · member since {formatDate(profile.createdAt)}
           </p>
+          {(profile.city || profile.bio) && (
+            <p>{[profile.city, profile.bio].filter(Boolean).join(' · ')}</p>
+          )}
         </div>
         <Button variant="quiet" onClick={() => logout.mutate(undefined, { onSuccess: () => navigate('/login', { replace: true }) })} disabled={logout.isPending}>
           Sign out

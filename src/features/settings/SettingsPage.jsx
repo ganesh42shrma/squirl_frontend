@@ -2,13 +2,13 @@ import { Link, Navigate, NavLink, useLocation, useParams } from 'react-router-do
 import { ArrowUpRight, CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { useIsMobile } from '../../hooks/useMedia';
 import { useProfile } from '../auth/useAuth';
+import { Avatar } from '../profile/Avatar';
 import { PROFILE_PATH, settingsPath } from '../../app/paths';
 import { LEGACY_HASHES, SETTINGS_GROUPS, settingsItem } from './sections';
 import '../profile/profile.css';
 import '../commitments/commitments.css';
 import './settings.css';
 
-const initialsOf = (name = '') => name.split(/\s+/).map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
 
 function ItemLink({ item, rich }) {
   const Icon = item.icon;
@@ -51,7 +51,7 @@ function ProfileCard() {
   if (!profile) return null;
   return (
     <Link to={PROFILE_PATH} className="settings-card">
-      <span className="avatar avatar--large" aria-hidden="true">{initialsOf(profile.name)}</span>
+      <Avatar name={profile.name} mediaId={profile.avatarMediaId} large />
       <span className="settings-card__text"><strong>{profile.name}</strong><span>{profile.email}</span></span>
       <CaretRight size={18} aria-hidden="true" />
     </Link>

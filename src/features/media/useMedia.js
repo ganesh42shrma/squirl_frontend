@@ -66,3 +66,24 @@ export function useRemoveAttachment() {
     onSuccess: (_result, { ownerType, ownerId }) => client.invalidateQueries({ queryKey: ['media', 'attachments', ownerType, ownerId] }),
   });
 }
+
+// The profile picture: one per account. Sending a new one replaces the old; the profile query carries its media id.
+export function useUploadAvatar() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (blob) => {
+      const form = new FormData();
+      form.append('file', blob, 'avatar.jpg'); // a generic name: the real file name never leaves the device
+      return api('/media/avatar', { method: 'POST', body: form }).then((r) => r.data.attachment);
+    },
+    onSuccess: () => client.invalidateQueries({ queryKey: ['profile'] }),
+  });
+}
+
+export function useRemoveAvatar() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: () => api('/media/avatar', { method: 'DELETE' }),
+    onSuccess: () => client.invalidateQueries({ queryKey: ['profile'] }),
+  });
+}

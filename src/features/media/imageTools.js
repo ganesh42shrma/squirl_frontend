@@ -64,8 +64,8 @@ const browser = {
   toBlob: (canvas, type, quality) => new Promise((resolve) => canvas.toBlob(resolve, type, quality)),
 };
 
-/** Decodes, shrinks to at most 2000 px and re-encodes as JPEG. Resolves with a Blob. */
-export async function compressImage(file, { maxSide = MAX_SIDE, quality = JPEG_QUALITY, env = browser } = {}) {
+/** Decodes, shrinks to at most 2000 px (or `maxSide`) and re-encodes as JPEG. Resolves with a Blob. */
+export async function compressImage(file, { maxSide = MAX_SIDE, quality = JPEG_QUALITY, square = false, env = browser } = {}) {
   let decoded;
   try {
     decoded = await env.decode(file);
@@ -74,12 +74,18 @@ export async function compressImage(file, { maxSide = MAX_SIDE, quality = JPEG_Q
   }
   try {
     if (!(decoded.width > 0 && decoded.height > 0)) throw new ImageError('That photo has no picture in it.');
-    const { width, height } = fitWithin(decoded.width, decoded.height, maxSide);
+    // square: crop the middle to a square (a profile picture); otherwise keep the photo's shape.
+    const side = Math.min(decoded.width, decoded.height);
+    const crop = square
+      ? { sx: (decoded.width - side) / 2, sy: (decoded.height - side) / 2, sw: side, sh: side }
+      : { sx: 0, sy: 0, sw: decoded.width, sh: decoded.height };
+    const { width, height } = fitWithin(crop.sw, crop.sh, maxSide);
     const canvas = env.canvas(width, height);
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#ffffff'; // JPEG has no transparency: a transparent PNG would turn black
     ctx.fillRect(0, 0, width, height);
-    ctx.drawImage(decoded.source, 0, 0, width, height);
+    if (square) ctx.drawImage(decoded.source, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, width, height);
+    else ctx.drawImage(decoded.source, 0, 0, width, height);
     const blob = await env.toBlob(canvas, 'image/jpeg', quality);
     if (!blob || !blob.size) throw new ImageError('Couldn’t prepare that photo. Please try another.');
     return blob;

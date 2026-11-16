@@ -12,24 +12,17 @@ import { useIsMobile } from '../../hooks/useMedia';
 import { QuoteFooter } from './QuoteFooter';
 import { SystemToasts } from '../../features/tasks/SystemToasts';
 import { CaptureLauncher } from '../../features/capture/CaptureLauncher';
-import { useLogout, useMe } from '../../features/auth/useAuth';
+import { useLogout, useMe, useProfile } from '../../features/auth/useAuth';
+import { Avatar } from '../../features/profile/Avatar';
 import { DASHBOARD_PATH, PROFILE_PATH, SETTINGS_PATH, tabForPath } from '../../app/modules';
 import './layout.css';
 import './mobile.css';
 import '../../features/profile/profile.css';
 
-const initialsOf = (name = '') =>
-  name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-
 // Who's signed in, with Profile, Settings and Sign out. A native <details> keeps it keyboard-friendly.
 function AccountMenu() {
   const { data: me } = useMe();
+  const { data: profile } = useProfile();
   const logout = useLogout();
   const navigate = useNavigate();
   const location = useLocation();
@@ -47,7 +40,7 @@ function AccountMenu() {
   return (
     <details className="account-menu" ref={ref}>
       <summary aria-label={`Account: ${me.name}`}>
-        <span className="avatar">{initialsOf(me.name)}</span>
+        <Avatar name={me.name} mediaId={profile?.avatarMediaId} />
       </summary>
       <div className="account-menu__panel">
         <p className="account-menu__who">
