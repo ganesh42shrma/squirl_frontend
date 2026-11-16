@@ -98,6 +98,11 @@ assert.equal(savedMessage({ created: [], inbox: [{}] }), 'Saved to your inbox');
 assert.equal(resultLink({ kind: 'transaction', title: 'Swiggy & co' }), '/app/finance/ledger?preset=all&q=Swiggy%20%26%20co');
 assert.equal(resultLink({ kind: 'goal', id: 'abc' }), '/app/finance/goals/abc');
 assert.equal(resultLink({ kind: 'habit' }), '/app/tasks/habits');
+// A person opens the ledger filtered to their payments (all time).
+assert.equal(resultLink({ kind: 'person', id: 'abc123' }), '/app/finance/ledger?preset=all&person=abc123');
+assert.deepEqual(describeResult({ kind: 'person', title: 'Ramesh', isFamily: true }, today), { kind: 'person', title: 'Ramesh', detail: 'Your circle · Family · Enter to see their payments' });
+assert.equal(describeResult({ kind: 'person', title: 'Ramesh', isFamily: false }, today).detail, 'Your circle · Enter to see their payments');
+assert.ok(commands.some((c) => c.to === '/app/settings/people' && c.label === 'Your circle'), 'Settings → Your circle is a page command');
 assert.equal(resultLink({ kind: 'capture' }), null, 'inbox notes open inside the palette');
 assert.equal(describeResult({ kind: 'transaction', title: 'Swiggy', amount: 450, date: '2026-11-10', direction: 'debit' }, today).detail, '₹450 · 10 Nov');
 assert.equal(describeResult({ kind: 'task', title: 'x', status: 'open', dueDate: today }, today).detail, 'Due Today');

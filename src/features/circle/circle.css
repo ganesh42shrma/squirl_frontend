@@ -1,0 +1,29 @@
+/* Your circle: the list, importer and "Who is this?" picker reuse the member-* styles from the profile page. */
+.circle-import { display: grid; gap: 10px; }
+.circle-import__row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.circle-import__result { display: grid; gap: 4px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--stone); }
+.circle-import__result p { margin: 0; }
+.circle-import__help { color: var(--ink-soft); font-size: var(--text-sm); }
+.circle-import__help summary { cursor: pointer; }
+.circle-import__help p { margin: 6px 0 0; }
+
+.circle-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.circle-tools .ledger-search { flex: 1 1 220px; }
+.circle-list { max-height: none; overflow: visible; }
+.circle-list.is-refreshing { opacity: 0.6; }
+.circle-family { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; font-size: var(--text-sm); }
+.circle-pager { display: flex; align-items: center; justify-content: center; gap: 12px; }
+
+.circle-phone { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.circle-phone__code { color: var(--ink-soft); text-align: center; }
+.circle-icon-btn { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 50%; background: var(--stone); color: var(--ink-soft); cursor: pointer; }
+.circle-add-phone { justify-self: start; }
+
+.circle-picker { display: grid; gap: 10px; }
+.circle-picker__list { list-style: none; margin: 0; padding: 0; max-height: 280px; overflow-y: auto; }
+.circle-picker__item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 6px; border: 0; border-bottom: 1px solid var(--line); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.circle-picker__item:hover:not(:disabled), .circle-picker__item.is-selected { background: var(--stone); }
+
+@media (max-width: 420px) {
+  .circle-family { margin-left: 48px; }
+}

@@ -13,16 +13,16 @@ export function AddMemberDialog({ transaction, onClose }) {
   const save = useAddFamilyMember();
   const toast = useToast();
   return (
-    <Dialog title="Add member" onClose={onClose} footer={
+    <Dialog title="Add as family" onClose={onClose} footer={
       <>
         <Button variant="quiet" onClick={onClose}>Cancel</Button>
-        <Button type="submit" form="ledger-member-form" disabled={save.isPending}>{save.isPending ? 'Saving…' : 'Save member'}</Button>
+        <Button type="submit" form="ledger-member-form" disabled={save.isPending}>{save.isPending ? 'Saving…' : 'Save as family'}</Button>
       </>
     }>
       <form id="ledger-member-form" className="profile-form" onSubmit={(e) => {
         e.preventDefault();
         save.mutate({ transactionId: transaction._id, ...memberBody(form) }, { onSuccess: () => {
-          toast('Member saved. Updating matching past payments…');
+          toast('Saved to your circle as family. Updating matching past payments…');
           onClose();
         } });
       }}>

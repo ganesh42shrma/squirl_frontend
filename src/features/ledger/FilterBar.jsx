@@ -5,6 +5,7 @@ import { CategorySelect } from '../categories/CategorySelect';
 import { useCategories } from '../categories/useCategories';
 import { useImports } from '../imports/useImports';
 import { useBalances } from '../insights/useInsights';
+import { usePerson } from '../circle/useCircle';
 import { useTags } from '../tags/useTags';
 import { useDebouncedValue } from '../../lib/hooks';
 import { currentMonthKey, formatAccount, formatDate, formatMonth, shiftMonth } from '../../lib/format';
@@ -146,6 +147,7 @@ export function LedgerFilters({ filters, onChange, onClear, resultText }) {
   const { tags } = useTags();
   const { labelOf } = useCategories();
   const imports = useImports();
+  const person = usePerson(filters.person); // only fetched when the ledger is filtered to someone
   // Typing updates the URL (replacing, so Back isn't flooded); an outside change (a chip's ✕) updates the box.
   useEffect(() => { if (debounced !== filters.q) onChange({ q: debounced }, { replace: true }); }, [debounced]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => setText(filters.q), [filters.q]);
@@ -154,7 +156,8 @@ export function LedgerFilters({ filters, onChange, onClear, resultText }) {
     category: (id) => labelOf(id),
     statement: (id) => imports.data?.find((b) => b._id === id)?.fileName,
     account: formatAccount,
-  }), [labelOf, imports.data]);
+    person: () => person.data?.name,
+  }), [labelOf, imports.data, person.data]);
   const chips = buildChips(filters, names);
   const moreActive = ['type', 'account', 'source', 'importId'].filter((k) => filters[k]).length + (filters.hasNotes ? 1 : 0) + (filters.auto ? 1 : 0);
   const amountActive = filters.min !== null || filters.max !== null;

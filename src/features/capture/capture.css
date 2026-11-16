@@ -131,6 +131,7 @@
 .palette-row__icon--income { color: var(--olive-ink); }
 .palette-row__icon--task,
 .palette-row__icon--goal { color: var(--sky-ink); }
+.palette-row__icon--person { color: var(--clay-ink); }
 .palette-row__icon--habit { color: var(--kraft-ink); }
 .palette-row__icon--ai,
 .palette-row__icon--inbox,

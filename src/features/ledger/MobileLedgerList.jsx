@@ -2,7 +2,8 @@ import { memo } from 'react';
 import { Plus } from '@phosphor-icons/react';
 import { CategoryIcon } from '../../components/ui/CategoryIcon';
 import { TagPill } from '../tags/TagPill';
-import { maskFinancialText } from '../../lib/guestMode';
+import { isGuestMode, maskFinancialText } from '../../lib/guestMode';
+import { personLabel } from '../circle/circleModel';
 import { formatAccount, formatMoney, todayISO, toInputDate } from '../../lib/format';
 
 function categoryLabel(category) {
@@ -46,6 +47,7 @@ const TxCard = memo(function TxCard({ tx, isNew, onOpen }) {
             <span className={tx.category ? '' : 'tx-card__unsorted'}>{label || 'Sort it'}</span>
             <span aria-hidden="true"> · </span>
             {formatAccount(tx.account)}
+            {tx.person && !isGuestMode() && <span className="tx-card__person"> · {personLabel(tx.person)}</span>}
           </span>
           {tx.tags.length > 0 && (
             <span className="tx-card__tags">

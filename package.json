@@ -20,7 +20,8 @@
     "test:quotes": "node scripts/test-quotes.mjs",
     "test:sms-ui": "node scripts/test-sms-ui.mjs",
     "test:settings-draft": "node scripts/test-settings-draft.mjs",
-    "test:media-ui": "node scripts/test-media-ui.mjs"
+    "test:media-ui": "node scripts/test-media-ui.mjs",
+    "test:circle": "node scripts/test-circle.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

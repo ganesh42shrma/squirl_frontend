@@ -8,6 +8,9 @@ import { describeError } from '../../api/client';
 import { isGuestMode, maskFinancialText } from '../../lib/guestMode';
 import { formatAccount, toInputDate } from '../../lib/format';
 import { AttachmentsPanel } from '../media/AttachmentsPanel';
+import { PersonPicker } from '../circle/PersonPicker';
+import { labelHint, personLabel } from '../circle/circleModel';
+import { useLinkPerson } from '../circle/useCircle';
 import { useUpdateTransaction } from './useTransactions';
 
 /**
@@ -25,6 +28,14 @@ export function TransactionSheet({ tx, onClose }) {
   const [notes, setNotes] = useState(tx.notes || '');
   const update = useUpdateTransaction();
   const [error, setError] = useState('');
+  // "Who is this?" saves on its own (it labels the payment, it isn't part of the form's Save).
+  const [person, setPerson] = useState(tx.person || null);
+  const [picking, setPicking] = useState(false);
+  const link = useLinkPerson();
+  const choose = (personId) => link.mutate({ id: tx._id, personId }, {
+    onSuccess: (updated) => { setPerson(updated.person || null); setPicking(false); setError(''); },
+    onError: (err) => setError(describeError(err)),
+  });
 
   const save = (e) => {
     e.preventDefault();
@@ -100,6 +111,21 @@ export function TransactionSheet({ tx, onClose }) {
           <span>Tags</span>
           <TagInput value={tags} onChange={setTags} />
         </div>
+        {!isGuestMode() && (
+          <div className="field tx-form__person">
+            <span>Who is this?</span>
+            {person && <p className="tx-form__hint"><strong>{personLabel(person)}</strong> {labelHint(person)}</p>}
+            {tx.canLinkPerson ? (
+              <>
+                <div className="tx-form__person-actions">
+                  <Button type="button" variant="quiet" size="small" onClick={() => setPicking((open) => !open)}>{picking ? 'Close' : person ? 'Change' : 'Link to someone in your circle'}</Button>
+                  {person?.via === 'link' && <Button type="button" variant="quiet" size="small" disabled={link.isPending} onClick={() => choose(null)}>Remove link</Button>}
+                </div>
+                {picking && <PersonPicker selectedId={person?._id} disabled={link.isPending} onPick={(p) => choose(p._id)} />}
+              </>
+            ) : <p className="tx-form__hint">This payment has no UPI id or payee name to remember, so it can’t be linked to someone.</p>}
+          </div>
+        )}
         {!isGuestMode() && (
           <label className="field">
             <span>Note</span>

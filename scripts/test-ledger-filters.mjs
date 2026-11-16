@@ -7,7 +7,7 @@ const parse = (qs) => parseFilters(new URLSearchParams(qs), month);
 // Defaults: this month, nothing filtered, newest first.
 const base = parse('');
 assert.equal(base.preset, 'month'); assert.equal(base.month, month); assert.equal(base.sort, '-date'); assert.equal(activeFilterCount(base), 0);
-assert.deepEqual(toQuery(base, month, 30), { from: '2026-11-01', to: '2026-11-30', sort: '-date', page: 1, limit: 30, search: undefined, searchIn: undefined, type: undefined, category: undefined, tag: undefined, account: undefined, source: undefined, importId: undefined, minAmount: undefined, maxAmount: undefined, hasNotes: undefined, auto: undefined });
+assert.deepEqual(toQuery(base, month, 30), { from: '2026-11-01', to: '2026-11-30', sort: '-date', page: 1, limit: 30, search: undefined, searchIn: undefined, type: undefined, category: undefined, tag: undefined, account: undefined, person: undefined, source: undefined, importId: undefined, minAmount: undefined, maxAmount: undefined, hasNotes: undefined, auto: undefined });
 assert.equal(toParams(base, month).toString(), '', 'defaults leave the URL clean');
 
 // Date presets, including Indian financial years and a leap February.
@@ -34,6 +34,16 @@ assert.equal(activeFilterCount(rich), 10);
 const summary = toSummaryQuery(rich, month);
 assert.equal(summary.groupBy, 'categoryType'); assert.ok(!('page' in summary) && !('limit' in summary) && !('sort' in summary));
 assert.equal(summary.minAmount, 500);
+// "Payments with this person" (from the palette or a link) round-trips and shows as its own chip.
+const withPerson = parse('person=abc123&preset=all');
+assert.equal(withPerson.person, 'abc123');
+assert.equal(toQuery(withPerson, month).person, 'abc123');
+assert.equal(toSummaryQuery(withPerson, month).person, 'abc123', 'totals describe exactly the rows shown');
+assert.deepEqual(parse(toParams(withPerson, month).toString()), withPerson);
+assert.equal(activeFilterCount(withPerson), 1);
+assert.deepEqual(buildChips(withPerson, { person: () => 'Ramesh' }).map((c) => [c.id, c.name, c.value, c.patch]), [['person', 'With', 'Ramesh', { person: '' }]]);
+assert.equal(buildChips(withPerson)[0].value, 'Someone in your circle', 'a name that has not loaded yet still reads sensibly');
+assert.equal(clearedFilters(withPerson).person, '');
 // A zero amount is a real bound, not "unset".
 assert.equal(parse('min=0').min, 0); assert.equal(toQuery(parse('min=0&max=0'), month).maxAmount, 0);
 assert.equal(parse('min=-5').min, null); assert.equal(parse('min=abc').min, null);

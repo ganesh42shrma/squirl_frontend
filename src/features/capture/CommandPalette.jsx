@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
-  Camera, ArrowRight, CalendarCheck, CheckSquare, Flame, HandCoins, Lightning, MagnifyingGlass, NotePencil, Receipt, Sparkle, Target, Tray, X,
+  Camera, ArrowRight, CalendarCheck, CheckSquare, Flame, HandCoins, Lightning, MagnifyingGlass, NotePencil, Receipt, Sparkle, Target, Tray, UsersThree, X,
 } from '@phosphor-icons/react';
 import { MODULES } from '../../app/modules';
 import { describeError } from '../../api/client';
@@ -17,7 +17,7 @@ import { useMediaStatus, useUploadAttachment } from '../media/useMedia';
 import { useAiCategories, useAiPreview, useCaptureInbox, useCapturePreview, useCaptureSearch, useCommitCapture, useDismissCapture, useUndoCapture } from './useCapture';
 import './capture.css';
 
-const ICONS = { expense: Receipt, income: HandCoins, task: CheckSquare, habit: Flame, note: NotePencil, goal: Target, bill: CalendarCheck, nav: ArrowRight, ai: Sparkle, inbox: Tray };
+const ICONS = { expense: Receipt, income: HandCoins, task: CheckSquare, habit: Flame, note: NotePencil, goal: Target, bill: CalendarCheck, person: UsersThree, nav: ArrowRight, ai: Sparkle, inbox: Tray };
 const COMMANDS = navCommands(MODULES);
 
 function RowIcon({ kind }) {

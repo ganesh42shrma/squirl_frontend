@@ -12,6 +12,7 @@ import { useUpdateTransaction } from './useTransactions';
 import { TransactionNoteDialog } from './TransactionNoteDialog';
 import { Dialog } from '../../components/ui/Dialog';
 import { Button } from '../../components/ui/Button';
+import { personLabel } from '../circle/circleModel';
 
 function categoryLabel(category) {
   if (!category) return null;
@@ -30,7 +31,7 @@ function parseAmount(raw, currentType) {
 /**
  * Statement facts stay read-only; personal notes, categories and tags can be edited.
  */
-export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew, onAddMember }) {
+export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew, onLink }) {
   const [editing, setEditing] = useState(null);
   const [noteOpen, setNoteOpen] = useState(false);
   const imported = tx.source === 'import';
@@ -127,13 +128,14 @@ export const LedgerRow = memo(function LedgerRow({ tx, selected, onToggle, isNew
             <span className="ledger-description__text">{maskFinancialText(tx.description)}</span>
             <span className="ledger-description__meta">
               {tx.source === 'import' ? `${formatAccount(tx.account)} statement` : formatAccount(tx.account)}
+              {tx.person && !isGuestMode() && <span className="ledger-person" title={`With ${tx.person.name}`}> · {personLabel(tx.person)}</span>}
               {tx.notes && !isGuestMode() && <span className="ledger-note-preview"> · {maskFinancialText(tx.notes)}</span>}
             </span>
           </span>
         )}
         <div className="ledger-row-actions">
           <button type="button" className={`ledger-action${tx.notes ? ' has-note' : ''}`} disabled={isGuestMode()} onClick={() => setNoteOpen(true)} aria-label={`${tx.notes ? 'Edit' : 'Add'} note for ${maskFinancialText(tx.description)}`} title={isGuestMode() ? 'Notes hidden in guest mode' : tx.notes ? `Edit note: ${tx.notes}` : 'Add note'}><NotePencil size={16} aria-hidden="true" /></button>
-          {onAddMember && <button type="button" className="ledger-action ledger-add-member" onClick={() => onAddMember(tx)} aria-label={`Add to family & friends from ${maskFinancialText(tx.description)}`} title="Add to family & friends"><UsersThree size={16} aria-hidden="true" /></button>}
+          {onLink && !isGuestMode() && <button type="button" className={`ledger-action ledger-add-member${tx.person ? ' has-note' : ''}`} onClick={() => onLink(tx)} aria-label={`Who is this? ${maskFinancialText(tx.description)}`} title={tx.person ? `With ${tx.person.name}. Change who this is` : 'Who is this?'}><UsersThree size={16} aria-hidden="true" /></button>}
         </div>
       </div>
 

@@ -69,6 +69,7 @@ export function parseFilters(params, currentMonth) {
     category: get('category') || (view === 'unsorted' ? 'none' : ''),
     tag: get('tag'),
     account: get('account'),
+    person: get('person'), // an id from Your circle: the payments with that person
     source: ['import', 'manual'].includes(get('source')) ? get('source') : '',
     importId,
     min: num('min'),
@@ -95,6 +96,7 @@ export function toParams(filters, currentMonth) {
   set('category', filters.category);
   set('tag', filters.tag);
   set('account', filters.account);
+  set('person', filters.person);
   set('source', filters.source);
   set('import', filters.importId);
   set('min', filters.min);
@@ -118,6 +120,7 @@ export function toQuery(filters, currentMonth, limit = 30) {
     category: filters.category || undefined,
     tag: filters.tag || undefined,
     account: filters.account || undefined,
+    person: filters.person || undefined,
     source: filters.source || undefined,
     importId: filters.importId || undefined,
     minAmount: filters.min ?? undefined,
@@ -139,7 +142,7 @@ export function toSummaryQuery(filters, currentMonth) {
 
 /** Which filters (other than the date range) are on. */
 export function activeFilterCount(filters) {
-  return ['q', 'type', 'category', 'tag', 'account', 'source', 'importId'].filter((k) => filters[k]).length
+  return ['q', 'type', 'category', 'tag', 'account', 'person', 'source', 'importId'].filter((k) => filters[k]).length
     + (filters.min !== null || filters.max !== null ? 1 : 0) + (filters.hasNotes ? 1 : 0) + (filters.auto ? 1 : 0);
 }
 
@@ -153,7 +156,7 @@ export function amountLabel(min, max) {
 
 /**
  * One chip per active filter: { id, name, value, patch }. `patch` is the change that removes it.
- * `names` resolves ids to words: { category(id), statement(id), account(id) }.
+ * `names` resolves ids to words: { category(id), statement(id), account(id), person(id) }.
  */
 export function buildChips(filters, names = {}) {
   const chips = [];
@@ -164,6 +167,7 @@ export function buildChips(filters, names = {}) {
   if (filters.category) add('category', 'Category', filters.category === 'none' ? 'Not sorted yet' : names.category?.(filters.category) || 'Selected category', { category: '' });
   if (filters.tag) add('tag', 'Tag', filters.tag, { tag: '' });
   if (filters.account) add('account', 'Account', names.account?.(filters.account) || filters.account, { account: '' });
+  if (filters.person) add('person', 'With', names.person?.(filters.person) || 'Someone in your circle', { person: '' });
   if (filters.importId) add('import', 'Statement', names.statement?.(filters.importId) || 'One statement', { importId: '' });
   if (filters.source) add('source', 'Source', filters.source === 'import' ? 'From statements' : 'Added by hand', { source: '' });
   if (filters.hasNotes) add('notes', 'Notes', 'Has notes', { hasNotes: false });
@@ -173,7 +177,7 @@ export function buildChips(filters, names = {}) {
 
 /** Fresh filters with everything off, keeping the date range and sort. */
 export const clearedFilters = (filters) => ({
-  ...filters, q: '', searchIn: 'all', type: '', category: '', tag: '', account: '', source: '', importId: '', min: null, max: null, hasNotes: false, auto: false, page: 1,
+  ...filters, q: '', searchIn: 'all', type: '', category: '', tag: '', account: '', person: '', source: '', importId: '', min: null, max: null, hasNotes: false, auto: false, page: 1,
 });
 
 // The page buttons: first, last and the pages around the current one, with gaps shown as null.

@@ -49,3 +49,7 @@
 
 .ledger-sort-select { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin: 4px 0 8px; color: var(--ink-soft); font-size: var(--text-sm); }
 .ledger-sort-select select { min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); font: inherit; }
+
+.tx-card__person { color: var(--clay-ink); font-weight: 500; }
+.tx-form__person { display: grid; gap: 8px; }
+.tx-form__person-actions { display: flex; flex-wrap: wrap; gap: 8px; }

@@ -16,6 +16,7 @@ export function navCommands(modules) {
   commands.push(
     { id: 'nav:settings', label: 'Settings', hint: 'Go to', to: settingsPath(), keywords: 'preferences account' },
     { id: 'nav:notifications', label: 'Notification settings', hint: 'Settings', to: settingsPath('notifications'), keywords: 'push reminders alerts' },
+    { id: 'nav:circle', label: 'Your circle', hint: 'Settings', to: settingsPath('people'), keywords: 'contacts family friends people import phone book' },
     { id: 'nav:customize', label: 'Customize dashboard', hint: 'Dashboard', to: CUSTOMIZE_DASHBOARD_PATH, keywords: 'widgets layout' },
   );
   return commands;
@@ -155,6 +156,7 @@ export function resultLink(result) {
     case 'task': return tasksPath('lists');
     case 'habit': return tasksPath('habits');
     case 'goal': return goalPath(result.id);
+    case 'person': return financePath('ledger', `?preset=all&person=${encodeURIComponent(result.id)}`);
     case 'commitment': return financePath('payments');
     default: return null;
   }
@@ -166,6 +168,7 @@ export function describeResult(result, today) {
     case 'transaction': return { kind: result.direction === 'credit' ? 'income' : 'expense', title: result.title, detail: `${formatMoney(result.amount)} · ${shortDate(result.date)}` };
     case 'task': return { kind: 'task', title: result.title, detail: result.status === 'done' ? 'Done' : result.dueDate ? `Due ${relativeDay(result.dueDate, today)}` : 'Open task' };
     case 'habit': return { kind: 'habit', title: result.title, detail: result.streak ? `${result.streak}-day streak` : 'Habit' };
+    case 'person': return { kind: 'person', title: result.title, detail: `Your circle${result.isFamily ? ' · Family' : ''} · Enter to see their payments` };
     case 'goal': return { kind: 'goal', title: result.title, detail: `Goal · ${result.status}` };
     case 'commitment': return { kind: 'bill', title: result.title, detail: result.amount ? `${formatMoney(result.amount)} · EMIs & bills` : 'EMIs & bills' };
     default: return { kind: 'note', title: result.title, detail: 'In your capture inbox' };

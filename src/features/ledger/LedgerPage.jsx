@@ -17,6 +17,7 @@ import { LedgerPagination } from './LedgerPagination';
 import { paginationInfo, rememberPageSize, rememberedPageSize } from './ledgerPaging';
 import { activeFilterCount, clearedFilters, parseFilters, rangeFor, toParams, toQuery, toSummaryQuery } from './ledgerFilters';
 import { AddMemberDialog } from '../profile/AddMemberDialog';
+import { LinkPersonDialog } from '../circle/LinkPersonDialog';
 import { PaymentNotePrompt } from './PaymentNotePrompt';
 import { MobileLedgerList } from './MobileLedgerList';
 import { TransactionSheet } from './TransactionSheet';
@@ -82,6 +83,7 @@ export function LedgerPage() {
   const [selected, setSelected] = useState(() => new Set());
   const [newId, setNewId] = useState(null);
   const [memberTransaction, setMemberTransaction] = useState(null);
+  const [linkTransaction, setLinkTransaction] = useState(null);
   const isMobile = useIsMobile();
   const [editingTx, setEditingTx] = useState(null);
   const [adding, setAdding] = useState(false);
@@ -227,7 +229,7 @@ export function LedgerPage() {
           {isMobile
             ? rows.length > 0 && <MobileLedgerList rows={rows} newId={newId} onOpen={setEditingTx} />
             : rows.map((tx) => (
-              <LedgerRow key={tx._id} tx={tx} selected={selected.has(tx._id)} onToggle={toggle} isNew={tx._id === newId} onAddMember={setMemberTransaction} />
+              <LedgerRow key={tx._id} tx={tx} selected={selected.has(tx._id)} onToggle={toggle} isNew={tx._id === newId} onLink={setLinkTransaction} />
             ))}
         </div>
 
@@ -243,6 +245,7 @@ export function LedgerPage() {
       )}
       {isMobile && adding && <AddTransactionSheet onClose={() => setAdding(false)} onAdded={(created) => { changePage(1); setNewId(created._id); }} />}
       {isMobile && editingTx && <TransactionSheet tx={editingTx} onClose={() => setEditingTx(null)} />}
+      {linkTransaction && <LinkPersonDialog transaction={linkTransaction} onClose={() => setLinkTransaction(null)} onAddFamily={setMemberTransaction} />}
       {memberTransaction && <AddMemberDialog transaction={memberTransaction} onClose={() => setMemberTransaction(null)} />}
     </div>
   );

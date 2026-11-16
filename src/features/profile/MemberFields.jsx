@@ -8,7 +8,7 @@ const localPhone = (value = '') => {
 };
 export const memberDraft = (c = {}) => ({ ...emptyMember, ...c, phone: localPhone(c.phone), aliases: (c.aliases || []).join(', ') });
 export const memberBody = (f) => ({ name: f.name.trim(), phone: f.phone.trim(), relationship: f.relationship, aliases: [...new Set(f.aliases.split(',').map((a) => a.trim()).filter(Boolean))] });
-const RELATIONSHIPS = ['Mother', 'Father', 'Spouse', 'Partner', 'Brother', 'Sister', 'Child', 'Relative', 'Friend', 'Other'];
+export const RELATIONSHIPS = ['Mother', 'Father', 'Spouse', 'Partner', 'Brother', 'Sister', 'Child', 'Relative', 'Friend', 'Other'];
 
 export function MemberFields({ value, onChange }) {
   const set = (key) => (e) => onChange((prev) => ({ ...prev, [key]: e.target.value }));

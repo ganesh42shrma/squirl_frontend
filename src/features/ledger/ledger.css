@@ -493,3 +493,6 @@
   .filter-pair { grid-template-columns: 1fr; }
   .ledger-applied__count { margin-left: 0; }
 }
+
+/* "→ Ramesh": who a payment is with (from Your circle). A label only. */
+.ledger-person { color: var(--clay-ink); font-weight: 500; }

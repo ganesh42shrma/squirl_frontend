@@ -1,7 +1,7 @@
 import { ArrowCounterClockwise, Bell, ChatCircleText, Plugs, Sparkle, SquaresFour, UserCircle, UsersThree } from '@phosphor-icons/react';
 import { CUSTOMIZE_DASHBOARD_PATH } from '../../app/paths';
 import { ProfilePage } from '../profile/ProfilePage';
-import { FamilyContacts } from '../profile/FamilyContacts';
+import { YourCircle } from '../circle/YourCircle';
 import { DeviceNotifications } from '../profile/DeviceNotifications';
 import { BankSms } from '../profile/BankSms';
 import { DataSources } from '../profile/DataSources';
@@ -19,7 +19,7 @@ export const SETTINGS_GROUPS = [
     label: 'Account',
     items: [
       { id: 'profile', label: 'Profile', icon: UserCircle, blurb: 'Name, email, password', page: ProfilePage },
-      { id: 'people', label: 'Family & friends', icon: UsersThree, blurb: 'Your people', page: FamilyContacts, needsProfile: true, single: true },
+      { id: 'people', label: 'Your circle', icon: UsersThree, blurb: 'Contacts and family', page: YourCircle, single: true },
     ],
   },
   {

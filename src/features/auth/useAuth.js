@@ -89,9 +89,9 @@ export function useAddFamilyMember() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body) => api('/users/me/family-contacts', { method: 'POST', body }).then((r) => r.data),
-    onSuccess: (profile) => {
-      queryClient.setQueryData(['profile'], profile);
-      ['transactions', 'summary', 'insights', 'rules', 'categories', 'family-sync', 'commitments', 'goals'].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
+    // The saved person goes into Your circle; family changes re-sort past payments.
+    onSuccess: () => {
+      ['people', 'transactions', 'summary', 'insights', 'rules', 'categories', 'family-sync', 'commitments', 'goals'].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
     },
   });
 }
