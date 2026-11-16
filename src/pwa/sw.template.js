@@ -1,6 +1,7 @@
 // The build script inserts only public interface files. API responses and records are never cached.
 const CACHE = __CACHE_NAME__;
 const FILES = __PRECACHE_FILES__;
+const BUILD = __BUILD_INFO__; // { id, at, v }: shown in Settings → App & updates
 const paths = new Set(FILES);
 
 self.addEventListener('install', (event) => {
@@ -19,7 +20,7 @@ self.addEventListener('activate', (event) => {
   })());
 });
 self.addEventListener('message', (event) => {
-  if (event.data?.type === 'PWA_STATUS') event.ports?.[0]?.postMessage({ paymentNotes: true, version: CACHE });
+  if (event.data?.type === 'PWA_STATUS') event.ports?.[0]?.postMessage({ paymentNotes: true, version: CACHE, build: BUILD });
   if (event.data?.type === 'ACTIVATE_UPDATE') event.waitUntil(self.skipWaiting());
 });
 self.addEventListener('fetch', (event) => {

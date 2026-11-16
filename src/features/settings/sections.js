@@ -1,7 +1,8 @@
-import { ArrowCounterClockwise, Bell, ChatCircleText, Plugs, Sparkle, SquaresFour, UserCircle, UsersThree } from '@phosphor-icons/react';
+import { ArrowCounterClockwise, ArrowsClockwise, Bell, ChatCircleText, Plugs, Sparkle, SquaresFour, UserCircle, UsersThree } from '@phosphor-icons/react';
 import { CUSTOMIZE_DASHBOARD_PATH } from '../../app/paths';
 import { ProfilePage } from '../profile/ProfilePage';
 import { YourCircle } from '../circle/YourCircle';
+import { AppUpdates } from './AppUpdates';
 import { DeviceNotifications } from '../profile/DeviceNotifications';
 import { BankSms } from '../profile/BankSms';
 import { DataSources } from '../profile/DataSources';
@@ -34,6 +35,7 @@ export const SETTINGS_GROUPS = [
     label: 'This app',
     items: [
       { id: 'notifications', label: 'Notifications', icon: Bell, blurb: 'Reminders and alerts', page: DeviceNotifications, single: true },
+      { id: 'app', label: 'App & updates', icon: ArrowsClockwise, blurb: 'Version and updates', page: AppUpdates, single: true },
       { id: 'dashboard', label: 'Dashboard layout', icon: SquaresFour, blurb: 'Choose widgets', to: CUSTOMIZE_DASHBOARD_PATH },
     ],
   },

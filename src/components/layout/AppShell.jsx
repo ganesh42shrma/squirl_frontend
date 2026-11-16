@@ -6,6 +6,7 @@ import { GuestModeToggle } from './GuestModeToggle';
 import { ModuleLauncher } from './ModuleLauncher';
 import { useGuestMode } from '../../lib/useGuestMode';
 import { BackgroundNotices } from './BackgroundNotices';
+import { UpdateBanner } from './UpdateBanner';
 import { MobileTabBar } from './MobileTabBar';
 import { useIsMobile } from '../../hooks/useMedia';
 import { QuoteFooter } from './QuoteFooter';
@@ -126,6 +127,7 @@ export function AppShell() {
         </div>
         {module && module.tabs.length > 1 && <SubTabs module={module} />}
       </header>
+      <UpdateBanner />
       {/* Rebuild views and close open editors when privacy changes, including memoized
           ledger rows and animated figures, so no previous amount stays on screen. */}
       <main className="shell__main" key={guestMode ? 'guest' : 'private'}>

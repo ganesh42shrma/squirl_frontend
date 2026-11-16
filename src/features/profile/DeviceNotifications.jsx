@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { settingsPath } from '../../app/paths';
 import { Button } from '../../components/ui/Button';
 import { SaveBar } from '../../components/ui/SaveBar';
 import { hasChanges, normalisePreferences } from '../../lib/settingsDraft';
 import { useToast } from '../../components/ui/Toast';
 import { api, describeError } from '../../api/client';
-import { clearBrowserPush, enablePush, getRegistration, getSubscription, paymentRepliesReady, supportsPush, updatePwa } from '../../pwa/client';
+import { clearBrowserPush, enablePush, getRegistration, getSubscription, paymentRepliesReady, supportsPush } from '../../pwa/client';
 
 export function DeviceNotifications() {
   const toast = useToast();
@@ -106,10 +108,7 @@ export function DeviceNotifications() {
         {!supported && <p>Not supported in this browser. Try Chrome.</p>}
         {status && !status.ready && <p>Not available yet.</p>}
         {supported && status?.ready && !workerReady && <p>Reload the page once to finish setup.</p>}
-        {supported && <>
-          {repliesReady === false && <p role="status">Update the app to reply to payment alerts.</p>}
-          <div><Button variant="quiet" onClick={() => work(updatePwa)} disabled={busy}>Update app</Button></div>
-        </>}
+        {supported && repliesReady === false && <p role="status">Replying to payment alerts needs the latest app. <Link to={settingsPath('app')}>Update in App &amp; updates</Link>.</p>}
         {preferences && (
           <>
             <fieldset className="notification-options" disabled={busy}>

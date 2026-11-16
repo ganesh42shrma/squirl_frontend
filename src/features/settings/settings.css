@@ -227,3 +227,7 @@
 .settings--mobile .settings__title {
   font-size: var(--text-xl);
 }
+
+.app-version { display: grid; gap: 4px; margin: 0; }
+.app-version dt { color: var(--ink-soft); font-size: var(--text-sm); }
+.app-version dd { margin: 0; font-weight: 600; }
