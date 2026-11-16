@@ -52,10 +52,11 @@ export function AttachmentsPanel(props) {
 }
 
 // The panel itself, with guest mode passed in so it can be checked without a browser.
-export function AttachmentsPanelView({ ownerType, ownerId, readOnly = false, guestMode = false }) {
+// `day` (YYYY-MM-DD) is for a habit: its photos belong to one day, and so does the limit.
+export function AttachmentsPanelView({ ownerType, ownerId, day, title = 'Photos', emptyHint, readOnly = false, guestMode = false }) {
   const status = useMediaStatus();
   const configured = status.data?.configured === true;
-  const list = useAttachments(ownerType, ownerId, { enabled: configured && !guestMode });
+  const list = useAttachments(ownerType, ownerId, { enabled: configured && !guestMode, day });
   const uploader = useUploadAttachment();
   const remover = useRemoveAttachment();
   const [message, setMessage] = useState('');
@@ -66,7 +67,7 @@ export function AttachmentsPanelView({ ownerType, ownerId, readOnly = false, gue
   const cameraRef = useRef(null);
   const touch = useMemo(isTouchDevice, []);
 
-  const heading = <h3 className="media-panel__title">Photos</h3>;
+  const heading = title ? <h3 className="media-panel__title">{title}</h3> : null;
   if (guestMode) return <section className="media-panel" aria-label="Photos">{heading}<p className="media-hint">Hidden in guest mode.</p></section>;
   if (status.isLoading || !ownerId) return null;
   if (!configured) return <section className="media-panel" aria-label="Photos">{heading}<p className="media-hint">Photos aren’t set up on this server yet.</p></section>;
@@ -91,7 +92,7 @@ export function AttachmentsPanelView({ ownerType, ownerId, readOnly = false, gue
       try {
         const blob = await compressImage(queue[i]);
         if (blob.size > maxBytes) { errors.push('That photo is still too big after shrinking it. Please try a different one.'); continue; }
-        await uploader.upload(ownerType, ownerId, blob);
+        await uploader.upload(ownerType, ownerId, blob, day);
       } catch (err) {
         errors.push(err?.name === 'ImageError' ? err.message : describeError(err));
       }
@@ -128,7 +129,7 @@ export function AttachmentsPanelView({ ownerType, ownerId, readOnly = false, gue
       {list.isLoading && <p className="media-hint">Loading photos…</p>}
       {list.isError && <p className="media-error" role="alert">{describeError(list.error)}</p>}
       {!list.isLoading && !list.isError && attachments.length === 0 && (
-        <p className="media-hint">{readOnly ? 'No photos.' : 'No photos yet. Add a receipt or anything you want to keep with this.'}</p>
+        <p className="media-hint">{readOnly ? 'No photos.' : emptyHint || 'No photos yet. Add a receipt or anything you want to keep with this.'}</p>
       )}
       {attachments.length > 0 && (
         <ul className="media-grid" role="list">

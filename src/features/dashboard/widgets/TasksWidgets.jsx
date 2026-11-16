@@ -1,7 +1,7 @@
 // Tasks widgets: the System-window look, over the same Tasks hooks the Tasks pages use. They
 // render inside a card that drops its own padding (see dashboard.css [data-module='tasks']).
 import { Link } from 'react-router-dom';
-import { Check, Fire, Medal } from '@phosphor-icons/react';
+import { Camera, Check, Fire, Medal } from '@phosphor-icons/react';
 import { tasksPath } from '../../../app/paths';
 import { QuestWindow } from '../../tasks/QuestWindow';
 import { XpHeatmap } from '../../tasks/HunterPage';
@@ -100,7 +100,10 @@ function StreaksView({ habits, today, limit, preview = false }) {
             <li key={h._id}>
               <span className="widget-streaks__name">{h.name}</span>
               <span className="sys-num widget-streaks__count"><Fire size={14} weight={h.currentStreak ? 'fill' : 'regular'} aria-hidden="true" /> {h.currentStreak}<span className="sys-muted"> {streakUnit(h, h.currentStreak)}</span></span>
-              {h.scheduledToday && (
+              {h.scheduledToday && h.requirePhoto && !h.doneToday && (
+                <Link to={tasksPath('habits')} className="widget-check widget-check--photo" aria-label={`Add a photo to check in: ${h.name}`}><Camera size={14} weight="bold" aria-hidden="true" /></Link>
+              )}
+              {h.scheduledToday && !(h.requirePhoto && !h.doneToday) && (
                 <button type="button" className={`widget-check${h.doneToday ? ' is-done' : ''}`} disabled={preview || checkIn.isPending || undo.isPending} aria-pressed={h.doneToday} aria-label={h.doneToday ? `Undo today: ${h.name}` : `Check in: ${h.name}`} onClick={() => (h.doneToday ? undo.mutate({ id: h._id, date: today }) : checkIn.mutate({ id: h._id }))}>
                   <Check size={14} weight="bold" aria-hidden="true" />
                 </button>

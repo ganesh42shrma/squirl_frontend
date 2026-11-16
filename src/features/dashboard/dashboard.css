@@ -72,6 +72,7 @@
 .widget-streaks__count { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .widget-check { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--sys-line); border-radius: 4px; background: transparent; color: transparent; cursor: pointer; }
 .widget-check:hover:not(:disabled) { background: rgba(58, 212, 255, 0.15); color: var(--sys-line); }
+.widget-check--photo { color: var(--sys-line); text-decoration: none; }
 .widget-check.is-done { background: var(--sys-line); color: #04101c; }
 
 /* Edit mode: controls above each widget, the widget itself becomes a picture. */

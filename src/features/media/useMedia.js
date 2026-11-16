@@ -5,7 +5,7 @@ const BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export const mediaKeys = {
   status: ['media', 'status'],
-  attachments: (ownerType, ownerId) => ['media', 'attachments', ownerType, ownerId],
+  attachments: (ownerType, ownerId, day) => (day ? ['media', 'attachments', ownerType, ownerId, day] : ['media', 'attachments', ownerType, ownerId]),
 };
 
 /** Where a photo is shown from. Same-origin, so the session cookie authorises it; the URL carries no secret. */
@@ -23,9 +23,9 @@ export const useMediaStatus = () => useQuery({
 });
 
 // Only metadata (ids, size) is ever cached. Image bytes and blob URLs never enter the query cache.
-export const useAttachments = (ownerType, ownerId, { enabled = true } = {}) => useQuery({
-  queryKey: mediaKeys.attachments(ownerType, ownerId),
-  queryFn: ({ signal }) => api('/media/attachments', { query: { ownerType, ownerId }, signal }).then((r) => r.data.attachments),
+export const useAttachments = (ownerType, ownerId, { enabled = true, day } = {}) => useQuery({
+  queryKey: mediaKeys.attachments(ownerType, ownerId, day),
+  queryFn: ({ signal }) => api('/media/attachments', { query: { ownerType, ownerId, day }, signal }).then((r) => r.data.attachments),
   enabled: Boolean(enabled && ownerType && ownerId),
 });
 
@@ -37,22 +37,24 @@ let ticketCounter = 0;
 export function useUploadAttachment() {
   const client = useQueryClient();
   const mutation = useMutation({
-    mutationFn: ({ ownerType, ownerId, ticket }) => {
+    mutationFn: ({ ownerType, ownerId, day, ticket }) => {
       const blob = pendingFiles.get(ticket);
       pendingFiles.delete(ticket);
       const form = new FormData();
       form.append('ownerType', ownerType);
       form.append('ownerId', ownerId);
+      if (day) form.append('day', day);
       form.append('file', blob, 'receipt.jpg'); // a generic name: the real file name never leaves the phone
       return api('/media/upload', { method: 'POST', body: form }).then((r) => r.data.attachment);
     },
-    onSuccess: (_attachment, { ownerType, ownerId }) => client.invalidateQueries({ queryKey: mediaKeys.attachments(ownerType, ownerId) }),
+    // Every list of this item's photos, whatever day it was asked for, is stale now.
+    onSuccess: (_attachment, { ownerType, ownerId }) => client.invalidateQueries({ queryKey: ['media', 'attachments', ownerType, ownerId] }),
   });
-  const upload = (ownerType, ownerId, blob) => {
+  const upload = (ownerType, ownerId, blob, day) => {
     ticketCounter += 1;
     const ticket = `upload-${ticketCounter}`;
     pendingFiles.set(ticket, blob);
-    return mutation.mutateAsync({ ownerType, ownerId, ticket }).finally(() => pendingFiles.delete(ticket));
+    return mutation.mutateAsync({ ownerType, ownerId, day, ticket }).finally(() => pendingFiles.delete(ticket));
   };
   return { upload, isPending: mutation.isPending, error: mutation.error, reset: mutation.reset };
 }
@@ -61,6 +63,6 @@ export function useRemoveAttachment() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: ({ id }) => api(`/media/attachments/${id}`, { method: 'DELETE' }),
-    onSuccess: (_result, { ownerType, ownerId }) => client.invalidateQueries({ queryKey: mediaKeys.attachments(ownerType, ownerId) }),
+    onSuccess: (_result, { ownerType, ownerId }) => client.invalidateQueries({ queryKey: ['media', 'attachments', ownerType, ownerId] }),
   });
 }

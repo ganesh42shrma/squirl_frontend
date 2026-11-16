@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Archive, ArrowCounterClockwise, Check, Crown, Fire, Minus, Moon, PencilSimple, Plus, Snowflake, Trash } from '@phosphor-icons/react';
+import { Archive, ArrowCounterClockwise, Camera, Check, Crown, Fire, Minus, Moon, PencilSimple, Plus, Snowflake, Trash } from '@phosphor-icons/react';
 import { Button } from '../../components/ui/Button';
 import { describeError } from '../../api/client';
 import { HabitForm } from './HabitForm';
+import { HabitPhotoDialog } from './HabitPhotoDialog';
 import { SystemWindow } from './SystemWindow';
 import { addDaysKey, cadenceText, streakUnit } from './taskUtils';
 import { useArchiveHabit, useBindEcho, useCheckIn, useDeleteHabit, useHabits, useToday, useUndoCheckIn } from './useTasks';
@@ -29,6 +30,7 @@ function HabitCard({ habit, today }) {
   const bind = useBindEcho();
   const [editing, setEditing] = useState(false);
   const [confirm, setConfirm] = useState(false);
+  const [proof, setProof] = useState(null); // { date, label, viewOnly }: the photo dialog for a day
   const busy = checkIn.isPending || undo.isPending;
   const error = [checkIn, undo, archive, remove, bind].find((m) => m.isError)?.error;
   const yesterday = addDaysKey(today, -1);
@@ -45,7 +47,7 @@ function HabitCard({ habit, today }) {
       <div className="habit-card__head">
         <div>
           <h3>{habit.name}</h3>
-          <p className="task-muted">{cadenceText(habit)}{counted ? ` · ${habit.targetQuantity} ${habit.unit} a day` : ''}</p>
+          <p className="task-muted">{cadenceText(habit)}{habit.requirePhoto ? ' · photo each day' : ''}{counted ? ` · ${habit.targetQuantity} ${habit.unit} a day` : ''}</p>
         </div>
         {habit.echo && <span className="echo-tag" title={`Bound Echo: +1% XP`}><Crown size={13} weight="fill" aria-hidden="true" /> {habit.echo.grade}</span>}
       </div>
@@ -75,6 +77,16 @@ function HabitCard({ habit, today }) {
         <div className="habit-card__actions">
           {!habit.scheduledToday ? (
             <p className="task-muted"><Moon size={14} aria-hidden="true" /> Not scheduled today</p>
+          ) : habit.requirePhoto && habit.doneToday ? (
+            <>
+              <Button size="small" variant="quiet" disabled={busy} onClick={() => undo.mutate({ id: habit._id, date: today })}><ArrowCounterClockwise size={14} aria-hidden="true" /> Undo today</Button>
+              <Button size="small" variant="quiet" onClick={() => setProof({ date: today, label: 'today', viewOnly: true })}><Camera size={14} aria-hidden="true" /> Photo</Button>
+            </>
+          ) : habit.requirePhoto && !habit.skippedToday ? (
+            <>
+              <Button size="small" variant="accent" disabled={busy} onClick={() => setProof({ date: today, label: 'today' })}><Camera size={14} aria-hidden="true" /> Check in with photo</Button>
+              {habit.skipsPerWeek > 0 && <Button size="small" variant="quiet" disabled={busy} onClick={() => checkIn.mutate({ id: habit._id, kind: 'skip' })}>Rest day</Button>}
+            </>
           ) : counted ? (
             <div className="habit-counter" role="group" aria-label={`${habit.name}: ${quantity} of ${habit.targetQuantity} ${habit.unit}`}>
               <button type="button" className="icon-button" aria-label="One less" disabled={busy || quantity <= 0} onClick={() => setQuantity(quantity - 1)}><Minus size={14} /></button>
@@ -92,7 +104,7 @@ function HabitCard({ habit, today }) {
               {habit.skipsPerWeek > 0 && <Button size="small" variant="quiet" disabled={busy} onClick={() => checkIn.mutate({ id: habit._id, kind: 'skip' })}>Rest day</Button>}
             </>
           )}
-          {yState === 'miss' && <button type="button" className="link-button" disabled={busy} onClick={() => checkIn.mutate({ id: habit._id, date: yesterday })}>Log yesterday</button>}
+          {yState === 'miss' && <button type="button" className="link-button" disabled={busy} onClick={() => (habit.requirePhoto ? setProof({ date: yesterday, label: 'yesterday' }) : checkIn.mutate({ id: habit._id, date: yesterday }))}>Log yesterday</button>}
           {habit.canBind && <Button size="small" variant="quiet" disabled={bind.isPending} onClick={() => bind.mutate(habit._id)}><Crown size={14} aria-hidden="true" /> Bind as Echo</Button>}
         </div>
       )}
@@ -104,6 +116,7 @@ function HabitCard({ habit, today }) {
         <button type="button" className={`icon-button${confirm ? ' is-danger' : ''}`} aria-label={confirm ? `Confirm delete ${habit.name}` : `Delete ${habit.name}`} onBlur={() => setConfirm(false)} onClick={() => (confirm ? remove.mutate(habit._id) : setConfirm(true))}>{confirm ? <span className="icon-button__text">Delete?</span> : <Trash size={15} />}</button>
       </div>
       {editing && <HabitForm habit={habit} onClose={() => setEditing(false)} />}
+      {proof && <HabitPhotoDialog habit={habit} date={proof.date} label={proof.label} viewOnly={proof.viewOnly} onClose={() => setProof(null)} />}
     </li>
   );
 }

@@ -9,7 +9,7 @@ import { useFamilySync } from '../auth/useAuth';
 import { ImportContacts } from './ImportContacts';
 import { PersonEditor } from './PersonEditor';
 import { familyToast, initialOf, personSubtitle } from './circleModel';
-import { usePeople, useRemovePerson, useUpdatePerson } from './useCircle';
+import { usePeople, useRemovePeople, useRemovePerson, useUpdatePerson } from './useCircle';
 import '../profile/profile.css';
 import './circle.css';
 
@@ -23,21 +23,38 @@ export function YourCircle() {
   const [editor, setEditor] = useState(null); // { person } — person null means a new one
   const [marking, setMarking] = useState(null); // { person, isFamily }: a family change we are asking about
   const [removing, setRemoving] = useState(null);
+  const [chooser, setChooser] = useState(false); // the "Remove…" menu
+  const [picking, setPicking] = useState(false); // tick-people mode
+  const [picked, setPicked] = useState(() => new Map()); // id → person, across pages
+  const [bulk, setBulk] = useState(null); // the group we are asking about: 'imported' | 'non_family' | 'picked'
   const search = useDebouncedValue(text.trim(), 250);
   const { data, isLoading, isError, error, isFetching } = usePeople({ search: search || undefined, family: familyOnly || undefined, page, limit: PAGE_SIZE });
   const { data: sync } = useFamilySync();
   const update = useUpdatePerson();
   const remove = useRemovePerson();
+  const removeMany = useRemovePeople();
   const toast = useToast();
   const items = data?.data || [];
   const meta = data?.meta;
-  const busy = update.isPending || remove.isPending;
+  const busy = update.isPending || remove.isPending || removeMany.isPending;
   const syncing = ['pending', 'running'].includes(sync?.status);
   // Removing the last person on the last page (or narrowing the search) can leave this page past the end.
   useEffect(() => { if (meta && page > Math.max(meta.pages, 1)) setPage(Math.max(meta.pages, 1)); }, [meta, page]);
   // The ticked value is read now: by the time the save finishes, the box has been redrawn from the old list.
   const setFamily = (p, isFamily) => update.mutate({ id: p._id, isFamily }, { onSuccess: () => toast(familyToast(p.name, isFamily)) });
   const removePerson = (p) => remove.mutate(p._id, { onSuccess: () => { setRemoving(null); toast(p.isFamily ? `${p.name} removed. Updating past payments…` : `${p.name} removed`); } });
+
+  const togglePicked = (p) => setPicked((m) => { const next = new Map(m); if (next.has(p._id)) next.delete(p._id); else next.set(p._id, p); return next; });
+  const pageAllPicked = items.length > 0 && items.every((p) => picked.has(p._id));
+  const togglePage = () => setPicked((m) => { const next = new Map(m); items.forEach((p) => (pageAllPicked ? next.delete(p._id) : next.set(p._id, p))); return next; });
+  const stopPicking = () => { setPicking(false); setPicked(new Map()); };
+  const pickedFamily = [...picked.values()].filter((p) => p.isFamily).length;
+  const bulkCount = bulk === 'imported' ? meta?.imported ?? 0 : bulk === 'non_family' ? (meta ? meta.circle - meta.family : 0) : picked.size;
+  const confirmBulk = () => removeMany.mutate(
+    bulk === 'picked' ? { ids: [...picked.keys()] } : { scope: bulk },
+    { onSuccess: (r) => { setBulk(null); stopPicking(); toast(r.removed === 1 ? '1 person removed' : `${r.removed} people removed`); } },
+  );
+  const openBulk = (kind) => { removeMany.reset(); setBulk(kind); };
 
   return (
     <section className="profile-section" aria-labelledby="circle-title">
@@ -49,8 +66,19 @@ export function YourCircle() {
         <ImportContacts />
         <div className="member-list-head">
           <span className="member-hint">{meta ? `${meta.circle.toLocaleString('en-IN')} ${meta.circle === 1 ? 'person' : 'people'} · ${meta.family.toLocaleString('en-IN')} family` : ''}</span>
-          <Button variant="quiet" size="small" onClick={() => setEditor({ person: null })}>Add a person</Button>
+          <div className="circle-head-actions">
+            <Button variant="quiet" size="small" disabled={!meta?.circle} onClick={() => setChooser(true)}>Remove…</Button>
+            <Button variant="quiet" size="small" onClick={() => setEditor({ person: null })}>Add a person</Button>
+          </div>
         </div>
+        {picking && (
+          <div className="circle-pickbar" role="region" aria-label="Remove people">
+            <label className="circle-check"><input type="checkbox" checked={pageAllPicked} onChange={togglePage} /> This page</label>
+            <span className="member-hint" role="status">{picked.size} selected</span>
+            <Button variant="quiet" size="small" onClick={stopPicking}>Cancel</Button>
+            <Button variant="danger" size="small" disabled={!picked.size} onClick={() => openBulk('picked')}>Remove {picked.size || ''}</Button>
+          </div>
+        )}
         <div className="circle-tools">
           <div className="circle-search">
             <MagnifyingGlass size={16} aria-hidden="true" className="circle-search__icon" />
@@ -66,8 +94,10 @@ export function YourCircle() {
         )}
         <ul className={`member-list circle-list${isFetching ? ' is-refreshing' : ''}`}>
           {items.map((p) => (
-            <li key={p._id} className="member-list-item">
-              <span className="member-avatar" aria-hidden="true">{initialOf(p.name)}</span>
+            <li key={p._id} className={`member-list-item${picking && picked.has(p._id) ? ' is-picked' : ''}`}>
+              {picking
+                ? <input className="circle-pick" type="checkbox" checked={picked.has(p._id)} onChange={() => togglePicked(p)} aria-label={`Select ${p.name}`} />
+                : <span className="member-avatar" aria-hidden="true">{initialOf(p.name)}</span>}
               <div className="member-list-info">
                 <span className="member-list-name">{p.name}</span>
                 <span className="member-hint">{personSubtitle(p) || 'No number'}</span>
@@ -92,6 +122,29 @@ export function YourCircle() {
           </nav>
         )}
       </div>
+      {chooser && <Dialog title="Remove contacts" onClose={() => setChooser(false)} footer={<Button variant="quiet" onClick={() => setChooser(false)}>Close</Button>}>
+        <div className="circle-choices">
+          <button type="button" className="circle-choice" disabled={!meta?.imported} onClick={() => { setChooser(false); openBulk('imported'); }}>
+            <strong>Imported contacts</strong><span className="member-hint">{meta?.imported ? `${meta.imported.toLocaleString('en-IN')} from your phone book` : 'None to remove'}</span>
+          </button>
+          <button type="button" className="circle-choice" disabled={!meta || meta.circle - meta.family === 0} onClick={() => { setChooser(false); openBulk('non_family'); }}>
+            <strong>Everyone except family</strong><span className="member-hint">{meta ? `${(meta.circle - meta.family).toLocaleString('en-IN')} people` : ''}</span>
+          </button>
+          <button type="button" className="circle-choice" onClick={() => { setChooser(false); setPicking(true); }}>
+            <strong>Pick people</strong><span className="member-hint">Tick them in the list</span>
+          </button>
+        </div>
+      </Dialog>}
+      {bulk && <Dialog title={`Remove ${bulkCount.toLocaleString('en-IN')} ${bulkCount === 1 ? 'person' : 'people'}?`} onClose={() => setBulk(null)} footer={
+        <>
+          <Button variant="quiet" onClick={() => setBulk(null)}>Cancel</Button>
+          <Button variant="danger" disabled={removeMany.isPending || bulkCount === 0} onClick={confirmBulk}>{removeMany.isPending ? 'Removing…' : 'Remove'}</Button>
+        </>
+      }>
+        <p>Their names and numbers leave your circle, and the “→ Name” labels on those payments disappear. Your payments and categories stay as they are.</p>
+        {bulk === 'picked' && pickedFamily > 0 && <p className="member-hint">{pickedFamily === 1 ? 'One is' : `${pickedFamily} are`} family. Payments in Family matching them will move to Other.</p>}
+        {removeMany.isError && <p className="import-error" role="alert">{describeError(removeMany.error)}</p>}
+      </Dialog>}
       {editor && <PersonEditor person={editor.person} onClose={() => setEditor(null)} />}
       {removing && <Dialog title={`Remove ${removing.name}?`} onClose={() => setRemoving(null)} footer={
         <>

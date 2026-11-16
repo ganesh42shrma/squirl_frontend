@@ -27,6 +27,7 @@ export function HabitForm({ habit, onClose }) {
     freezeMax: habit?.freezeMax ?? 2,
     skipsPerWeek: habit?.skipsPerWeek ?? 1,
     inDailyQuest: habit?.inDailyQuest || false,
+    requirePhoto: habit?.requirePhoto || false,
   }));
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
   const num = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value === '' ? '' : Number(e.target.value) }));
@@ -38,7 +39,7 @@ export function HabitForm({ habit, onClose }) {
     e.preventDefault();
     const body = {
       name: form.name.trim(), difficulty: form.difficulty, stat: form.stat || null, cadence: form.cadence,
-      freezeMax: form.freezeMax, skipsPerWeek: form.skipsPerWeek, inDailyQuest: form.inDailyQuest,
+      freezeMax: form.freezeMax, skipsPerWeek: form.skipsPerWeek, inDailyQuest: form.inDailyQuest, requirePhoto: form.requirePhoto,
       targetQuantity: form.counted ? Number(form.targetQuantity) : null, unit: form.counted ? form.unit.trim() : null,
       ...(form.cadence === 'weekdays' && { daysMask: form.daysMask }),
       ...(periodic && { targetPerPeriod: Number(form.targetPerPeriod) }),
@@ -96,6 +97,10 @@ export function HabitForm({ habit, onClose }) {
           </label>
           <p className="task-muted">A freeze is earned for every 7 periods in a row and quietly covers a miss. Rest days never break a streak.</p>
         </fieldset>
+        <div className="field task-detail__wide">
+          <label className="check-row"><input type="checkbox" checked={form.requirePhoto} onChange={set('requirePhoto')} /> Needs a photo to count</label>
+          {form.requirePhoto && <p className="task-muted">Add a photo, then press Done. Days you already logged stay as they are.</p>}
+        </div>
         <label className="check-row task-detail__wide"><input type="checkbox" checked={form.inDailyQuest} onChange={set('inDailyQuest')} /> Part of my Daily Quest</label>
         {save.isError && <p className="import-error task-detail__wide" role="alert">{describeError(save.error)}</p>}
       </form>

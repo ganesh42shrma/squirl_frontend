@@ -33,6 +33,9 @@ export const useCreatePerson = () => usePeopleMutation((body) => api('/people', 
 export const useUpdatePerson = () => usePeopleMutation(({ id, ...body }) => api(`/people/${id}`, { method: 'PATCH', body }).then((r) => r.data), { family: true });
 export const useRemovePerson = () => usePeopleMutation((id) => api(`/people/${id}`, { method: 'DELETE' }), { family: true });
 
+/** Remove several at once: { ids } for the ticked people, or { scope: 'imported' | 'non_family' } for a whole group. */
+export const useRemovePeople = () => usePeopleMutation((body) => api('/people/remove', { method: 'POST', body }).then((r) => r.data), { family: true });
+
 export function useImportContacts() {
   return usePeopleMutation((file) => {
     const body = new FormData();
